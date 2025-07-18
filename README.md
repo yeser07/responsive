@@ -41,7 +41,7 @@ Instalación y ejecución
 -----------------------
 1. Clonar el repositorio:
 
-git clone https://github.com/tuusuario/responsive.git
+git clone https://github.com/yeser07/responsive.git
 cd responsive
 
 2. Backend
