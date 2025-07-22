@@ -18,8 +18,15 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error('❌ Error al conectar a MongoDB:', err));
 
 // Rutas
+
+//USER OWNER
 const userOwnerRoutes = require('./routes/userOwnerRoutes');
 app.use('/api/users', userOwnerRoutes);
+
+// Configuration Items
+const configurationItemRoutes = require('./routes/configurationItemsRoutes');
+app.use('/api/cis', configurationItemRoutes);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor escuchando en puerto ${PORT}`));

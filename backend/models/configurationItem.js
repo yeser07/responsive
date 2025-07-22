@@ -11,7 +11,7 @@ const configurationItemSchema = new Schema({
         required: true,
         unique: true,
     },
-    brandNmae: {
+    brandName: {
         type: String,
         required: true,
     },
@@ -27,6 +27,7 @@ const configurationItemSchema = new Schema({
         type: String,
         required: true,
         enum: ['In use', 'stock', 'retired', 'missing', 'damaged'],
+        default: 'In use',
     },
 });
 
