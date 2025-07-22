@@ -27,7 +27,7 @@ const configurationItemSchema = new Schema({
         type: String,
         required: true,
         enum: ['In use', 'stock', 'retired', 'missing', 'damaged'],
-        default: 'In use',
+        default: 'stock',
     },
 });
 
