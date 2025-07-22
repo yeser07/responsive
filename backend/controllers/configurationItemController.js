@@ -55,7 +55,7 @@ exports.getConfigurationItemById = async (req, res) => {
 
 exports.getAllConfigurationItems = async (req, res) => {
     try {
-        const items = await ConfigurationItem.ConfigurationItem.find();
+        const items = await ConfigurationItem.find();
         res.status(200).json(items);
     } catch (error) {
         res.status(500).json({ 
@@ -66,10 +66,11 @@ exports.getAllConfigurationItems = async (req, res) => {
 }
 
 exports.toggleConfigurationItemStatus = async (req, res) => {
+    
     const itemId = req.params.id;
-    const { status } = req.params.status
+    const status = req.params.status;
     try {
-        const item = await ConfigurationItem.ConfigurationItem.findById(itemId);
+        const item = await ConfigurationItem.findById(itemId);
         if (!item) {
             return res.status(404).json({ message: 'Configuration item not found' });
         }
@@ -83,7 +84,7 @@ exports.toggleConfigurationItemStatus = async (req, res) => {
         const updatedItem = await item.save();
         res.status(200).json(
             {
-                message: `Configuration item status updated to ${newStatus}`,
+                message: `Configuration item status updated to ${status}`,
                 item: updatedItem
             });
     } catch (error) {

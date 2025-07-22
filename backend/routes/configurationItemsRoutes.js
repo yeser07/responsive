@@ -6,7 +6,7 @@ const validateConfigurationItemFields = require('../middlewares/validateConfigur
 router.get('/', configurationItemController.getAllConfigurationItems);
 router.get('/:id', configurationItemController.getConfigurationItemById);
 
-router.put('/:id/status', configurationItemController.toggleConfigurationItemStatus);
+router.put('/:id/:status', configurationItemController.toggleConfigurationItemStatus);
 router.post('/', validateConfigurationItemFields, configurationItemController.createConfigurationItem);
 router.post('/:id', validateConfigurationItemFields, configurationItemController.updateConfigurationItem);
 
