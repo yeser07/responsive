@@ -1,9 +1,6 @@
-<script setup>
-
-</script>
 
 <template>
-  <div>
+  <div class="bg-dark text-white">
     <h1>Creacion de Cartas Responsivas</h1>
 
     <p>Bienvenido al sistema de gestión de cartas responsivas. Aquí podrás crear, editar y gestionar las cartas responsivas para los usuarios.</p>
@@ -15,6 +12,13 @@
     </div>
   </div>
 </template>
+<script setup>
+
+</script>
+
+
+
+
 
 <style scoped>
 .logo {
@@ -29,4 +33,5 @@
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
 }
+
 </style>
