@@ -4,34 +4,34 @@
     <div class="d-flex flex-grow-1">
       <!-- SIDEBAR IZQUIERDO -->
       <div class="d-flex flex-column flex-shrink-0 p-3 bg-dark" style="width: 4.5rem;" >
-        <a href="/" class="d-block mb-3 text-center text-decoration-none">
-          <i class="bi bi-bootstrap fs-2 text-primary"></i>
+        <a href="/" class="d-block mb-3 text-center text-decoration-none -icon">
+          <i class="bi bi-person-workspace fs-2 text-primary"></i>
           <span class="visually-hidden">Inicio</span>
         </a>
         <ul class="nav nav-pills nav-flush flex-column mb-auto text-center">
           <li class="nav-item">
-            <a href="#" class="nav-link active py-3 border-bottom" title="Inicio" data-bs-toggle="tooltip" data-bs-placement="right">
+            <a href="#" class="nav-link  py-3 border-bottom" title="Inicio" data-bs-toggle="tooltip" data-bs-placement="right">
               <i class="bi bi-house-door fs-5"></i>
             </a>
           </li>
-          <li>
-            <a href="#" class="nav-link py-3 border-bottom" title="Dashboard" data-bs-toggle="tooltip" data-bs-placement="right">
-              <i class="bi bi-speedometer2 fs-5"></i>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-link py-3 border-bottom" title="Órdenes" data-bs-toggle="tooltip" data-bs-placement="right">
-              <i class="bi bi-table fs-5"></i>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-link py-3 border-bottom" title="Productos" data-bs-toggle="tooltip" data-bs-placement="right">
-              <i class="bi bi-grid fs-5"></i>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-link py-3 border-bottom" title="Clientes" data-bs-toggle="tooltip" data-bs-placement="right">
+          <li class="nav-item">
+            <a href="#" class="nav-link py-3 border-bottom" title="User Owners" data-bs-toggle="tooltip" data-bs-placement="right">
               <i class="bi bi-people fs-5"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link py-3 border-bottom" title="Configuration Items" data-bs-toggle="tooltip" data-bs-placement="right">
+              <i class="bi bi-laptop fs-5"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link py-3 border-bottom" title="Letters" data-bs-toggle="tooltip" data-bs-placement="right">
+              <i class="bi bi-envelope fs-5"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link py-3 border-bottom" title="Asignments" data-bs-toggle="tooltip" data-bs-placement="right">
+              <i class="bi bi-clipboard fs-5"></i>
             </a>
           </li>
         </ul>
@@ -77,4 +77,12 @@ export default {
   font-weight: bold;
   text-decoration: underline;
 }
+
+.nav-item {
+  cursor: pointer;
+}
+.nav-item:hover .nav-link {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 </style>

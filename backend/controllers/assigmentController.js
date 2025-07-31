@@ -107,6 +107,45 @@ exports.updateAssignmentToReturned = async (req, res) => {
 }
 
 
-function createAssignmentLetter( assigmentId,signatureFile){
-    
+async function compileTemplate(templatePath, data) {
+    const html = fs.readFileSync(templatePath, 'utf8');
+    return hbs.compile(html)(data);
+}
+
+async function createAssignmentLetter(assignmentId, signatureFile) {
+    try {
+        const assignment = await Assignment.findById(assignmentId);
+        if (!assignment) throw new Error('Assignment not found');
+
+        const html = await compileTemplate(
+            path.join(__dirname, 'template.hbs'),
+            {
+                assigneeName: assignment.employeeName,
+                date: new Date().toLocaleDateString(),
+                signature: signatureFile
+            }
+        );
+
+        const pdfPath = path.join(__dirname, 'uploads', `assignment_${assignmentId}.pdf`);
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(html);
+        await page.pdf({ path: pdfPath, format: 'A4' });
+        await browser.close();
+
+        // Guarda en MongoDB
+        const newLetter = new Letter({
+            assignmentId: assignmentId,
+            filePath: pdfPath
+        });
+
+        await newLetter.save();
+
+        return newLetter;
+
+    } catch (error) {
+        console.error('Error creating assignment letter:', error);
+        throw error;
+    }
 }
