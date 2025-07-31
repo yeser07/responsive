@@ -20,7 +20,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link py-3 border-bottom" title="Configuration Items" data-bs-toggle="tooltip" data-bs-placement="right">
+            <a href="/configuration-item" class="nav-link py-3 border-bottom" title="Configuration Items" data-bs-toggle="tooltip" data-bs-placement="right">
               <i class="bi bi-laptop fs-5"></i>
             </a>
           </li>
@@ -66,8 +66,8 @@
 export default {
   mounted() {
     // Inicializar tooltips de Bootstrap 5
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    [...tooltipTriggerList].forEach(tooltipEl => new bootstrap.Tooltip(tooltipEl));
+    /*const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].forEach(tooltipEl => new bootstrap.Tooltip(tooltipEl));*/
   }
 };
 </script>

@@ -53,17 +53,54 @@ exports.getConfigurationItemById = async (req, res) => {
     }
 }
 
+
 exports.getAllConfigurationItems = async (req, res) => {
-    try {
-        const items = await ConfigurationItem.find();
-        res.status(200).json(items);
-    } catch (error) {
-        res.status(500).json({ 
-            message: 'Internal server error',
-            error: error.message
-         });
-    }
-}
+  try {
+    const {
+      page = 1,
+      rowsPerPage = 10,
+      sortBy = '',
+      sortType = 'asc',
+      search = ''
+    } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limit = parseInt(rowsPerPage);
+    const skip = (pageNumber - 1) * limit;
+
+    const searchQuery = {
+      $or: [
+        { className: { $regex: search, $options: 'i' } },
+        { serialNumber: { $regex: search, $options: 'i' } },
+        { brandName: { $regex: search, $options: 'i' } },
+        { modelName: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } },
+        { status: { $regex: search, $options: 'i' } },
+      ]
+    };
+
+    const sortObject = sortBy ? { [sortBy]: sortType === 'desc' ? -1 : 1 } : {};
+
+    const total = await ConfigurationItem.countDocuments(search ? searchQuery : {});
+    const items = await ConfigurationItem
+      .find(search ? searchQuery : {})
+      .sort(sortObject)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      items,
+      total,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: 'Internal server error',
+      error: error.message,
+    });
+  }
+};
+
 
 exports.toggleConfigurationItemStatus = async (req, res) => {
     
