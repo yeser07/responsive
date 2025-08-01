@@ -53,14 +53,13 @@ exports.getConfigurationItemById = async (req, res) => {
     }
 }
 
-
 exports.getAllConfigurationItems = async (req, res) => {
   try {
     const {
       page = 1,
       rowsPerPage = 10,
-      sortBy = '',
-      sortType = 'asc',
+      sortBy = '[]',
+      sortType = '[]',
       search = ''
     } = req.query;
 
@@ -68,26 +67,58 @@ exports.getAllConfigurationItems = async (req, res) => {
     const limit = parseInt(rowsPerPage);
     const skip = (pageNumber - 1) * limit;
 
-    const searchQuery = {
-      $or: [
-        { className: { $regex: search, $options: 'i' } },
-        { serialNumber: { $regex: search, $options: 'i' } },
-        { brandName: { $regex: search, $options: 'i' } },
-        { modelName: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } },
-        { status: { $regex: search, $options: 'i' } },
-      ]
-    };
+    // Parse sortBy and sortType arrays from query string
+    let parsedSortBy = [];
+    let parsedSortType = [];
 
-    const sortObject = sortBy ? { [sortBy]: sortType === 'desc' ? -1 : 1 } : {};
+    try {
+      parsedSortBy = JSON.parse(sortBy);
+      parsedSortType = JSON.parse(sortType);
+    } catch (parseError) {
+      return res.status(400).json({ message: 'Invalid sortBy or sortType format' });
+    }
 
-    const total = await ConfigurationItem.countDocuments(search ? searchQuery : {});
-    const items = await ConfigurationItem
-      .find(search ? searchQuery : {})
+      if (!Array.isArray(parsedSortBy) || parsedSortBy.length === 0) {
+      parsedSortBy = ['className']; // Default sort by className
+      parsedSortType = ['asc'];
+    }
+
+    // Validate lengths match
+    if (!Array.isArray(parsedSortBy) || !Array.isArray(parsedSortType) || parsedSortBy.length !== parsedSortType.length) {
+      return res.status(400).json({ message: 'sortBy and sortType must be arrays of equal length' });
+    }
+
+    // Build sort object
+    const sortObject = {};
+    parsedSortBy.forEach((field, index) => {
+      const direction = parsedSortType[index] === 'desc' ? -1 : 1;
+      sortObject[field] = direction;
+    });
+
+    // Build search query
+    const searchQuery = search
+      ? {
+          $or: [
+            { className: { $regex: search, $options: 'i' } },
+            { serialNumber: { $regex: search, $options: 'i' } },
+            { brandName: { $regex: search, $options: 'i' } },
+            { modelName: { $regex: search, $options: 'i' } },
+            { location: { $regex: search, $options: 'i' } },
+            { status: { $regex: search, $options: 'i' } },
+          ]
+        }
+      : {};
+
+    // Get total count
+    const total = await ConfigurationItem.countDocuments(searchQuery);
+
+    // Get paginated, sorted, filtered items
+    const items = await ConfigurationItem.find(searchQuery)
       .sort(sortObject)
       .skip(skip)
       .limit(limit);
 
+    // Return response
     res.status(200).json({
       items,
       total,
