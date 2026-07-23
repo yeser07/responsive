@@ -4,12 +4,15 @@ const { Schema } = mongoose;
 const letterTemplateSchema = new Schema(
   {
     key: { type: String, unique: true, default: 'default' },
-    companyName: { type: String, default: 'CI Manager' },
-    title: { type: String, default: 'Carta Responsiva de Activo' },
+    companyName: { type: String, default: 'Mabe' },
+    title: {
+      type: String,
+      default: 'CARTA DE RESPONSABILIDAD DE EQUIPOS TECNOLÓGICOS',
+    },
     legalText: {
       type: String,
       default:
-        'Me comprometo a cuidar el equipo, usarlo únicamente para fines laborales y reportar cualquier daño, pérdida o mal funcionamiento de forma inmediata.',
+        'Declaro que tengo bajo mi responsabilidad el siguiente {equipmentType} y entiendo que debo utilizarlo de la forma correcta. Conozco la política de uso de los recursos informáticos y me comprometo a regresarlo en buenas condiciones.',
     },
     logoDataUrl: { type: String, default: null },
   },

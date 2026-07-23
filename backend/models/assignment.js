@@ -12,6 +12,11 @@ const assignmentSchema = new Schema({
     ref: 'ConfigurationItem',
     required: true,
   },
+  reviewerId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Reviewer',
+    default: null,
+  },
   assignmentDate: {
     type: Date,
     default: Date.now,

@@ -14,14 +14,15 @@ exports.getLetterTemplate = async (req, res) => {
 exports.updateLetterTemplate = async (req, res) => {
   try {
     const { companyName, title, legalText, logoDataUrl } = req.body;
+    const $set = {};
+    if (companyName !== undefined) $set.companyName = companyName;
+    if (title !== undefined) $set.title = title;
+    if (legalText !== undefined) $set.legalText = legalText;
+    if (logoDataUrl !== undefined) $set.logoDataUrl = logoDataUrl;
+
     const template = await LetterTemplate.findOneAndUpdate(
       { key: 'default' },
-      {
-        ...(companyName !== undefined ? { companyName } : {}),
-        ...(title !== undefined ? { title } : {}),
-        ...(legalText !== undefined ? { legalText } : {}),
-        ...(logoDataUrl !== undefined ? { logoDataUrl } : {}),
-      },
+      { $set, $unset: { reviewedByTitle: 1 } },
       { new: true, upsert: true }
     );
 

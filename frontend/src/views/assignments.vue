@@ -42,6 +42,9 @@
           {{ item.configurationItemId?.brandName }} {{ item.configurationItemId?.modelName }}
           ({{ item.configurationItemId?.serialNumber }})
         </template>
+        <template #item-reviewer="item">
+          {{ item.reviewerId?.name || '—' }}
+        </template>
         <template #item-assignmentDate="item">
           {{ formatDate(item.assignmentDate) }}
         </template>
@@ -61,7 +64,7 @@
           <button
             v-if="canWrite && !item.hasLetter"
             class="btn btn-success btn-sm"
-            @click="generateLetter(item)"
+            @click="openLetterModal(item)"
           >
             {{ t('assignments.letterPdf') }}
           </button>
@@ -104,6 +107,17 @@
                 />
               </div>
               <div class="mb-3">
+                <SearchableSelect
+                  v-model="form.reviewerId"
+                  :label="t('assignments.reviewer')"
+                  :placeholder="t('assignments.reviewerSearchPlaceholder')"
+                  :empty-label="t('assignments.noSearchResults')"
+                  :loading-label="t('common.loading')"
+                  :clear-label="t('assignments.clearSelection')"
+                  :fetch-options="fetchReviewerOptions"
+                />
+              </div>
+              <div class="mb-3">
                 <label class="form-label" for="accessories">{{ t('assignments.accessories') }}</label>
                 <input id="accessories" v-model="accessoriesText" class="form-control" :placeholder="t('assignments.accessoriesPlaceholder')" />
               </div>
@@ -123,6 +137,42 @@
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('common.close') }}</button>
               <button type="button" class="btn btn-primary" @click="save">{{ t('common.save') }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div class="modal fade" id="letterModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ t('assignments.letterModalTitle') }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" :aria-label="t('common.close')"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <SearchableSelect
+                  v-model="letterForm.reviewerId"
+                  :label="t('assignments.reviewer')"
+                  :placeholder="t('assignments.reviewerSearchPlaceholder')"
+                  :empty-label="t('assignments.noSearchResults')"
+                  :loading-label="t('common.loading')"
+                  :clear-label="t('assignments.clearSelection')"
+                  :fetch-options="fetchReviewerOptions"
+                />
+              </div>
+              <div class="mb-2">
+                <label class="form-label">{{ t('assignments.signature') }}</label>
+                <SignaturePad ref="letterSignaturePad" :clear-label="t('assignments.clearSignature')" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('common.close') }}</button>
+              <button type="button" class="btn btn-primary" :disabled="letterSaving" @click="submitLetter">
+                {{ t('assignments.generateLetter') }}
+              </button>
             </div>
           </div>
         </div>
@@ -151,6 +201,7 @@ const canWrite = computed(() => hasMinRole('operator'));
 const headers = computed(() => [
   { text: t('assignments.user'), value: 'user' },
   { text: t('assignments.ci'), value: 'ci' },
+  { text: t('assignments.reviewer'), value: 'reviewer' },
   { text: t('assignments.date'), value: 'assignmentDate' },
   { text: t('common.status'), value: 'status' },
   { text: t('common.actions'), value: 'actions' },
@@ -161,14 +212,19 @@ const loading = ref(false);
 const search = ref('');
 const accessoriesText = ref('');
 const signaturePad = ref(null);
+const letterSignaturePad = ref(null);
 const photoDataUrl = ref(null);
+const letterSaving = ref(false);
+const letterTargetId = ref(null);
 const serverItemsLength = ref(0);
 const serverOptions = ref({ page: 1, rowsPerPage: 10, sortBy: ['assignmentDate'], sortType: ['desc'] });
 const form = ref({
   userOwnerId: '',
   configurationItemId: '',
+  reviewerId: '',
   generateLetter: true,
 });
+const letterForm = ref({ reviewerId: '' });
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString() : '—');
 const statusLabel = (status) => t(`status.${status}`, status);
@@ -205,13 +261,38 @@ async function fetchCiOptions(query) {
   }));
 }
 
+async function fetchReviewerOptions(query) {
+  const { data } = await api.get('/reviewers', {
+    params: {
+      page: 1,
+      rowsPerPage: 20,
+      status: 'active',
+      search: query || '',
+      ...normalizeSortParams(['name'], ['asc']),
+    },
+  });
+  return (data.items || []).map((r) => ({
+    id: String(r._id),
+    label: `${r.name} — ${r.title}`,
+  }));
+}
+
 async function resetSignaturePad() {
   await nextTick();
   signaturePad.value?.reset?.();
 }
 
+async function resetLetterSignaturePad() {
+  await nextTick();
+  letterSignaturePad.value?.reset?.();
+}
+
 function onAssignmentModalShown() {
   resetSignaturePad();
+}
+
+function onLetterModalShown() {
+  resetLetterSignaturePad();
 }
 
 onMounted(() => {
@@ -219,12 +300,18 @@ onMounted(() => {
   document
     .getElementById('assignmentModal')
     ?.addEventListener('shown.bs.modal', onAssignmentModalShown);
+  document
+    .getElementById('letterModal')
+    ?.addEventListener('shown.bs.modal', onLetterModalShown);
 });
 
 onBeforeUnmount(() => {
   document
     .getElementById('assignmentModal')
     ?.removeEventListener('shown.bs.modal', onAssignmentModalShown);
+  document
+    .getElementById('letterModal')
+    ?.removeEventListener('shown.bs.modal', onLetterModalShown);
 });
 
 const load = async () => {
@@ -248,7 +335,7 @@ const load = async () => {
 };
 
 const openCreateModal = () => {
-  form.value = { userOwnerId: '', configurationItemId: '', generateLetter: true };
+  form.value = { userOwnerId: '', configurationItemId: '', reviewerId: '', generateLetter: true };
   accessoriesText.value = '';
   photoDataUrl.value = null;
   showModal('assignmentModal');
@@ -273,6 +360,11 @@ const onPhoto = (event) => {
 };
 
 const save = async () => {
+  if (form.value.generateLetter && !form.value.reviewerId) {
+    Swal.fire(t('common.warning'), t('assignments.reviewerRequired'), 'warning');
+    return;
+  }
+
   const accessories = accessoriesText.value
     .split(',')
     .map((s) => s.trim())
@@ -298,7 +390,11 @@ const save = async () => {
     }
 
     hideModal('assignmentModal');
-    Swal.fire(t('common.created'), t('assignments.createdMsg'), 'success');
+    if (data?.letterError) {
+      Swal.fire(t('common.warning'), t('assignments.createdLetterFailed'), 'warning');
+    } else {
+      Swal.fire(t('common.created'), t('assignments.createdMsg'), 'success');
+    }
     await load();
   } catch (error) {
     showError(t('common.error'), error, t('assignments.createError'));
@@ -324,24 +420,44 @@ const returnItem = async (item) => {
   }
 };
 
-const generateLetter = async (item) => {
+const openLetterModal = (item) => {
   if (item.hasLetter) {
     Swal.fire(t('common.warning'), t('assignments.letterExistsInfo'), 'info');
     return;
   }
+  letterTargetId.value = item._id;
+  letterForm.value = {
+    reviewerId: item.reviewerId?._id ? String(item.reviewerId._id) : '',
+  };
+  showModal('letterModal');
+};
 
+const submitLetter = async () => {
+  if (!letterForm.value.reviewerId) {
+    Swal.fire(t('common.warning'), t('assignments.reviewerRequired'), 'warning');
+    return;
+  }
+
+  letterSaving.value = true;
   try {
-    await api.post(`/assignments/${item._id}/letter`);
+    await api.post(`/assignments/${letterTargetId.value}/letter`, {
+      reviewerId: letterForm.value.reviewerId,
+      signatureDataUrl: letterSignaturePad.value?.toDataUrl() || null,
+    });
+    hideModal('letterModal');
     Swal.fire(t('assignments.letterReady'), t('assignments.letterReadyText'), 'success');
     await load();
   } catch (error) {
     const status = error.response?.status;
     if (status === 409) {
       Swal.fire(t('common.warning'), error.response?.data?.message || t('assignments.letterExistsInfo'), 'info');
+      hideModal('letterModal');
       await load();
       return;
     }
     showError(t('common.error'), error, t('assignments.letterError'));
+  } finally {
+    letterSaving.value = false;
   }
 };
 

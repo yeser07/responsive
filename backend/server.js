@@ -71,6 +71,7 @@ app.use('/api/admins', adminRoutes);
 app.use('/api/users', userOwnerRoutes);
 app.use('/api/cis', configurationItemRoutes);
 app.use('/api/assignments', assignmentRoutes);
+app.use('/api/reviewers', require('./routes/reviewerRoutes'));
 app.use('/api/letters', letterRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/audit', auditRoutes);

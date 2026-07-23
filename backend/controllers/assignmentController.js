@@ -1,12 +1,26 @@
 const { ConfigurationItem } = require('../models/configurationItem');
 const Assignment = require('../models/assignment');
 const UserOwner = require('../models/userOwner');
+const Reviewer = require('../models/reviewer');
 const Letter = require('../models/letter');
 const { parsePagination, parseSort } = require('../utils/pagination');
 const { recordAudit } = require('../utils/audit');
 const { enqueueLetter } = require('../utils/pdfQueue');
 
 const ASSIGNMENT_SORT_FIELDS = ['assignmentDate', 'status', 'returnDate', 'createdAt'];
+
+function notDeletedReviewer() {
+  return { $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }] };
+}
+
+async function findActiveReviewer(reviewerId) {
+  if (!reviewerId) return null;
+  return Reviewer.findOne({
+    _id: reviewerId,
+    active: true,
+    ...notDeletedReviewer(),
+  });
+}
 
 exports.getAllAssignments = async (req, res) => {
   try {
@@ -21,6 +35,7 @@ exports.getAllAssignments = async (req, res) => {
     let assignmentsQuery = Assignment.find(filter)
       .populate('userOwnerId', 'name logonUser jobDescription')
       .populate('configurationItemId', 'className serialNumber brandName modelName status')
+      .populate('reviewerId', 'name title active')
       .sort(Object.keys(sortObject).length ? sortObject : { assignmentDate: -1 });
 
     const allForFilter = await assignmentsQuery.lean();
@@ -34,6 +49,7 @@ exports.getAllAssignments = async (req, res) => {
           item.configurationItemId?.brandName,
           item.configurationItemId?.modelName,
           item.configurationItemId?.serialNumber,
+          item.reviewerId?.name,
           item.status,
         ];
         return values.some((v) => String(v || '').toLowerCase().includes(term));
@@ -68,6 +84,7 @@ exports.getAssignmentByUserOwnerId = async (req, res) => {
   try {
     const assignments = await Assignment.find({ userOwnerId: req.params.id })
       .populate('configurationItemId', 'className serialNumber brandName modelName status')
+      .populate('reviewerId', 'name title')
       .sort({ assignmentDate: -1 });
     res.status(200).json(assignments);
   } catch (error) {
@@ -79,7 +96,8 @@ exports.getAssignmentById = async (req, res) => {
   try {
     const assignment = await Assignment.findById(req.params.id)
       .populate('userOwnerId', 'name logonUser jobDescription')
-      .populate('configurationItemId', 'className serialNumber brandName modelName location status');
+      .populate('configurationItemId', 'className serialNumber brandName modelName location status')
+      .populate('reviewerId', 'name title active');
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
     }
@@ -93,6 +111,7 @@ exports.createAssignment = async (req, res) => {
   const {
     userOwnerId,
     configurationItemId,
+    reviewerId,
     accessories = [],
     generateLetter = false,
     signatureDataUrl,
@@ -120,9 +139,26 @@ exports.createAssignment = async (req, res) => {
       return res.status(400).json({ message: 'Configuration item already has an active assignment' });
     }
 
+    let resolvedReviewerId = reviewerId || null;
+    if (generateLetter) {
+      if (!resolvedReviewerId) {
+        return res.status(400).json({ message: 'Reviewer is required to generate a letter' });
+      }
+      const reviewer = await findActiveReviewer(resolvedReviewerId);
+      if (!reviewer) {
+        return res.status(400).json({ message: 'Active reviewer is required' });
+      }
+    } else if (resolvedReviewerId) {
+      const reviewer = await findActiveReviewer(resolvedReviewerId);
+      if (!reviewer) {
+        return res.status(400).json({ message: 'Active reviewer is required' });
+      }
+    }
+
     const assignment = await Assignment.create({
       userOwnerId,
       configurationItemId,
+      reviewerId: resolvedReviewerId,
       accessories: Array.isArray(accessories) ? accessories : [],
       status: 'assigned',
     });
@@ -131,8 +167,13 @@ exports.createAssignment = async (req, res) => {
     await ci.save();
 
     let letter = null;
+    let letterError = null;
     if (generateLetter) {
-      letter = await enqueueLetter(assignment._id, signatureDataUrl);
+      try {
+        letter = await enqueueLetter(assignment._id, signatureDataUrl);
+      } catch (error) {
+        letterError = error.message || 'Letter generation failed';
+      }
     }
 
     await recordAudit({
@@ -141,17 +182,26 @@ exports.createAssignment = async (req, res) => {
       action: 'create',
       entityType: 'assignment',
       entityId: assignment._id,
-      meta: { generateLetter: Boolean(generateLetter) },
+      meta: {
+        generateLetter: Boolean(generateLetter),
+        letterGenerated: Boolean(letter),
+        letterError: letterError || undefined,
+        reviewerId: resolvedReviewerId || undefined,
+      },
     });
 
     const populated = await Assignment.findById(assignment._id)
       .populate('userOwnerId', 'name logonUser jobDescription')
-      .populate('configurationItemId', 'className serialNumber brandName modelName status');
+      .populate('configurationItemId', 'className serialNumber brandName modelName status')
+      .populate('reviewerId', 'name title active');
 
     res.status(201).json({
-      message: 'Assignment created successfully',
+      message: letterError
+        ? 'Assignment created successfully, but letter generation failed'
+        : 'Assignment created successfully',
       assignment: populated,
       letter,
+      letterError,
     });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -184,7 +234,8 @@ exports.returnAssignment = async (req, res) => {
 
     const populated = await Assignment.findById(assignment._id)
       .populate('userOwnerId', 'name logonUser')
-      .populate('configurationItemId', 'className serialNumber brandName modelName status');
+      .populate('configurationItemId', 'className serialNumber brandName modelName status')
+      .populate('reviewerId', 'name title');
 
     res.status(200).json({
       message: 'Assignment returned successfully',
@@ -198,13 +249,34 @@ exports.returnAssignment = async (req, res) => {
 exports.generateLetterForAssignment = async (req, res) => {
   try {
     const signatureDataUrl = req.body?.signatureDataUrl;
-    const letter = await enqueueLetter(req.params.id, signatureDataUrl);
+    const reviewerId = req.body?.reviewerId;
+
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    if (reviewerId) {
+      const reviewer = await findActiveReviewer(reviewerId);
+      if (!reviewer) {
+        return res.status(400).json({ message: 'Active reviewer is required' });
+      }
+      assignment.reviewerId = reviewerId;
+      await assignment.save();
+    }
+
+    if (!assignment.reviewerId) {
+      return res.status(400).json({ message: 'Reviewer is required to generate a letter' });
+    }
+
+    const letter = await enqueueLetter(assignment._id, signatureDataUrl);
     await recordAudit({
       actorId: req.user?.id,
       actorUsername: req.user?.username,
       action: 'generate_letter',
       entityType: 'assignment',
       entityId: req.params.id,
+      meta: { reviewerId: String(assignment.reviewerId) },
     });
     res.status(201).json({
       message: 'Letter generated successfully',

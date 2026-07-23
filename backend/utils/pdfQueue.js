@@ -8,7 +8,7 @@ async function processNext() {
   processing = true;
   const job = queue.shift();
   try {
-    const letter = await createAssignmentLetter(job.assignmentId, job.signatureDataUrl);
+    const letter = await createAssignmentLetter(job.assignmentId, job.assigneeSignatureDataUrl);
     job.resolve(letter);
   } catch (error) {
     job.reject(error);
@@ -18,9 +18,9 @@ async function processNext() {
   }
 }
 
-function enqueueLetter(assignmentId, signatureDataUrl) {
+function enqueueLetter(assignmentId, assigneeSignatureDataUrl) {
   return new Promise((resolve, reject) => {
-    queue.push({ assignmentId, signatureDataUrl, resolve, reject });
+    queue.push({ assignmentId, assigneeSignatureDataUrl, resolve, reject });
     processNext();
   });
 }

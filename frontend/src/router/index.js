@@ -28,6 +28,11 @@ const routes = [
     meta: { minRole: 'viewer' },
   },
   {
+    path: '/reviewers',
+    component: () => import('../views/reviewers.vue'),
+    meta: { minRole: 'operator' },
+  },
+  {
     path: '/letters',
     component: () => import('../views/letters.vue'),
     meta: { minRole: 'viewer' },

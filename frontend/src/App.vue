@@ -153,6 +153,7 @@ const navItems = computed(() =>
     { to: '/user-owners', labelKey: 'nav.userOwners', icon: 'bi-people', titleKey: 'nav.userOwners', minRole: 'viewer' },
     { to: '/configuration-item', labelKey: 'nav.configurationItems', icon: 'bi-laptop', titleKey: 'nav.configurationItems', minRole: 'viewer' },
     { to: '/assignments', labelKey: 'nav.assignments', icon: 'bi-clipboard', titleKey: 'nav.assignments', minRole: 'viewer' },
+    { to: '/reviewers', labelKey: 'nav.reviewers', icon: 'bi-pen', titleKey: 'nav.reviewers', minRole: 'operator' },
     { to: '/letters', labelKey: 'nav.letters', icon: 'bi-envelope', titleKey: 'nav.letters', minRole: 'viewer' },
     { to: '/audit', labelKey: 'nav.audit', icon: 'bi-journal-text', titleKey: 'nav.audit', minRole: 'operator' },
     { to: '/settings', labelKey: 'nav.settings', icon: 'bi-sliders', titleKey: 'nav.settings', minRole: 'admin' },
