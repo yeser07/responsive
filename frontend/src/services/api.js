@@ -9,15 +9,20 @@ const api = axios.create({
 
 let refreshPromise = null;
 
+function applyUser(user) {
+  if (!user?.username) return;
+  setAuth(user.username, {
+    role: user.role,
+    mustChangePassword: user.mustChangePassword,
+  });
+}
+
 async function refreshSession() {
   if (!refreshPromise) {
     refreshPromise = axios
       .post(`${apiUrl}/auth/refresh`, null, { withCredentials: true })
       .then((response) => {
-        const username = response.data?.user?.username;
-        if (username) {
-          setAuth(username);
-        }
+        applyUser(response.data?.user);
         return response;
       })
       .finally(() => {
@@ -39,7 +44,8 @@ function isAuthPath(url = '') {
     url.includes('/auth/login') ||
     url.includes('/auth/refresh') ||
     url.includes('/auth/logout') ||
-    url.includes('/auth/me')
+    url.includes('/auth/me') ||
+    url.includes('/auth/sso')
   );
 }
 
@@ -72,11 +78,8 @@ api.interceptors.response.use(
 export async function fetchCurrentUser() {
   try {
     const { data } = await api.get('/auth/me', { _skipAuthRedirect: true });
-    const username = data?.user?.username || '';
-    if (username) {
-      setAuth(username);
-    }
-    return username || getUsername();
+    applyUser(data?.user);
+    return data?.user?.username || getUsername();
   } catch (error) {
     if (error.response?.status !== 401) {
       throw error;
@@ -84,16 +87,37 @@ export async function fetchCurrentUser() {
     try {
       await refreshSession();
       const { data } = await api.get('/auth/me', { _skipAuthRedirect: true });
-      const username = data?.user?.username || '';
-      if (username) {
-        setAuth(username);
-      }
-      return username || getUsername();
+      applyUser(data?.user);
+      return data?.user?.username || getUsername();
     } catch {
       clearAuth();
       throw error;
     }
   }
+}
+
+export async function loginRequest(username, password) {
+  const { data } = await api.post(
+    '/auth/login',
+    { username, password },
+    { _skipAuthRedirect: true }
+  );
+  applyUser(data.user);
+  return data.user;
+}
+
+export async function changePasswordRequest(currentPassword, newPassword) {
+  const { data } = await api.post('/auth/change-password', {
+    currentPassword,
+    newPassword,
+  });
+  applyUser(data.user);
+  return data.user;
+}
+
+export async function fetchSsoStatus() {
+  const { data } = await api.get('/auth/sso/status', { _skipAuthRedirect: true });
+  return data;
 }
 
 export async function logoutRequest() {

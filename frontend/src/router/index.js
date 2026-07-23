@@ -1,23 +1,66 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { isAuthenticated, clearAuth, shouldSkipSessionRestore } from '../services/auth';
+import { isAuthenticated, clearAuth, shouldSkipSessionRestore, hasMinRole, useAuthState } from '../services/auth';
 import { fetchCurrentUser } from '../services/api';
 
-import Home from '../views/home.vue';
-import Login from '../views/login.vue';
-import ConfigurationItem from '../views/configurationItem.vue';
-import UserOwner from '../views/userOwner.vue';
-import Assignments from '../views/assignments.vue';
-import Letters from '../views/letters.vue';
-import Admins from '../views/admins.vue';
-
 const routes = [
-  { path: '/login', component: Login, meta: { public: true } },
-  { path: '/', component: Home },
-  { path: '/configuration-item', component: ConfigurationItem },
-  { path: '/user-owners', component: UserOwner },
-  { path: '/assignments', component: Assignments },
-  { path: '/letters', component: Letters },
-  { path: '/admins', component: Admins },
+  {
+    path: '/login',
+    component: () => import('../views/login.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/',
+    component: () => import('../views/home.vue'),
+  },
+  {
+    path: '/configuration-item',
+    component: () => import('../views/configurationItem.vue'),
+    meta: { minRole: 'viewer' },
+  },
+  {
+    path: '/user-owners',
+    component: () => import('../views/userOwner.vue'),
+    meta: { minRole: 'viewer' },
+  },
+  {
+    path: '/assignments',
+    component: () => import('../views/assignments.vue'),
+    meta: { minRole: 'viewer' },
+  },
+  {
+    path: '/reviewers',
+    component: () => import('../views/reviewers.vue'),
+    meta: { minRole: 'operator' },
+  },
+  {
+    path: '/letters',
+    component: () => import('../views/letters.vue'),
+    meta: { minRole: 'viewer' },
+  },
+  {
+    path: '/admins',
+    component: () => import('../views/admins.vue'),
+    meta: { minRole: 'admin' },
+  },
+  {
+    path: '/audit',
+    component: () => import('../views/audit.vue'),
+    meta: { minRole: 'operator' },
+  },
+  {
+    path: '/settings',
+    component: () => import('../views/settings.vue'),
+    meta: { minRole: 'admin' },
+  },
+  {
+    path: '/change-password',
+    component: () => import('../views/changePassword.vue'),
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/notFound.vue'),
+  },
 ];
 
 const router = createRouter({
@@ -50,6 +93,15 @@ router.beforeEach(async (to) => {
 
   if (!(await ensureSession())) {
     return '/login';
+  }
+
+  const { mustChangePassword } = useAuthState();
+  if (mustChangePassword.value && to.path !== '/change-password') {
+    return '/change-password';
+  }
+
+  if (to.meta.minRole && !hasMinRole(to.meta.minRole)) {
+    return '/';
   }
 
   return true;

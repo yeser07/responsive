@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/admin');
 const RefreshToken = require('../models/refreshToken');
+const { recordAudit } = require('../utils/audit');
 const {
   getSecrets,
   parseDurationToMs,
@@ -12,6 +13,14 @@ const {
   clearAuthCookies,
   getRefreshTokenFromRequest,
 } = require('../utils/authCookies');
+
+function publicUser(admin) {
+  return {
+    username: admin.username,
+    role: admin.role || 'admin',
+    mustChangePassword: Boolean(admin.mustChangePassword),
+  };
+}
 
 async function issueSession(res, admin) {
   const accessToken = signAccessToken(admin);
@@ -46,10 +55,17 @@ exports.login = async (req, res) => {
     }
 
     await issueSession(res, admin);
+    await recordAudit({
+      actorId: admin._id,
+      actorUsername: admin.username,
+      action: 'login',
+      entityType: 'admin',
+      entityId: admin._id,
+    });
 
     res.status(200).json({
       message: 'Login successful',
-      user: { username: admin.username },
+      user: publicUser(admin),
     });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -96,7 +112,7 @@ exports.refresh = async (req, res) => {
 
     res.status(200).json({
       message: 'Token refreshed',
-      user: { username: admin.username },
+      user: publicUser(admin),
     });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -121,17 +137,83 @@ exports.logout = async (req, res) => {
 };
 
 exports.me = async (req, res) => {
-  res.status(200).json({ user: { username: req.user.username } });
+  try {
+    const admin = await Admin.findById(req.user.id).select('username role mustChangePassword');
+    if (!admin) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    res.status(200).json({ user: publicUser(admin) });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'currentPassword and newPassword are required' });
+  }
+  if (String(newPassword).length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters' });
+  }
+
+  try {
+    const admin = await Admin.findById(req.user.id);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    const valid = await bcrypt.compare(currentPassword, admin.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    admin.passwordHash = await bcrypt.hash(newPassword, 10);
+    admin.mustChangePassword = false;
+    await admin.save();
+
+    await issueSession(res, admin);
+    await recordAudit({
+      actorId: admin._id,
+      actorUsername: admin.username,
+      action: 'change_password',
+      entityType: 'admin',
+      entityId: admin._id,
+    });
+
+    res.status(200).json({
+      message: 'Password updated',
+      user: publicUser(admin),
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
 };
 
 exports.ensureDefaultAdmin = async () => {
+  const seedEnabled = process.env.SEED_DEFAULT_ADMIN !== 'false';
+  if (!seedEnabled) {
+    console.log('Default admin seed skipped (SEED_DEFAULT_ADMIN=false)');
+    return;
+  }
+
   const count = await Admin.countDocuments();
   if (count > 0) return;
+
+  if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD) {
+    throw new Error('ADMIN_PASSWORD is required to seed the first admin in production');
+  }
 
   const username = process.env.ADMIN_USERNAME || 'admin';
   const password = process.env.ADMIN_PASSWORD || 'admin123';
   const passwordHash = await bcrypt.hash(password, 10);
+  const isDefaultPassword = !process.env.ADMIN_PASSWORD || password === 'admin123';
 
-  await Admin.create({ username, passwordHash });
-  console.log(`Default admin created (username: ${username})`);
+  await Admin.create({
+    username,
+    passwordHash,
+    role: 'admin',
+    mustChangePassword: isDefaultPassword,
+  });
+  console.log(`Default admin created (username: ${username}, mustChangePassword: ${isDefaultPassword})`);
 };

@@ -2,6 +2,7 @@
   <div class="cm-page">
     <PageHeader :title="t('cis.title')" :subtitle="t('cis.subtitle')">
       <template #actions>
+        <button class="btn btn-outline-secondary" @click="exportCsv">{{ t('common.export') }}</button>
         <button class="btn btn-primary" @click="openCreateModal">{{ t('cis.newCi') }} <i class="bi bi-plus"></i></button>
         <button class="btn btn-success" @click="openImportHelpModal">{{ t('cis.importCis') }} <i class="bi bi-upload"></i></button>
         <input ref="importFileInput" type="file" accept=".csv,.json" class="d-none" @change="handleImportFile" />
@@ -32,7 +33,7 @@
         must-sort
       >
         <template #item-status="item">
-          <span :class="['cm-badge', statusBadgeClass(item.status)]">{{ item.status }}</span>
+          <span :class="['cm-badge', statusBadgeClass(item.status)]">{{ t(`status.${item.status === 'In use' ? 'inUse' : item.status}`, item.status) }}</span>
         </template>
         <template #item-actions="item">
           <button class="btn btn-primary btn-sm me-1" @click="getConfigurationItem(item._id)" :title="t('common.edit')">
@@ -151,6 +152,7 @@ import Swal from 'sweetalert2';
 import api from '../services/api';
 import PageHeader from '../components/PageHeader.vue';
 import { hideModal, showModal } from '../utils/modal';
+import { normalizeSortParams } from '../utils/sortParams';
 import {
   CI_IMPORT_TEMPLATE,
   downloadCsvTemplate,
@@ -213,8 +215,7 @@ const fetchItems = async () => {
       params: {
         page,
         rowsPerPage,
-        sortBy: JSON.stringify(sortBy),
-        sortType: JSON.stringify(sortType),
+        ...normalizeSortParams(sortBy, sortType),
         search: searchTerm || '',
       },
     });
@@ -262,7 +263,7 @@ const getConfigurationItem = async (id) => {
     currentId.value = id;
 
     showModal('ciModal');
-  } catch (error) {
+  } catch {
     Swal.fire({
       icon: 'error',
       title: t('common.error'),
@@ -298,10 +299,11 @@ const saveConfigurationItem = async () => {
     await fetchItems();
   } catch (error) {
     const messages = error.response?.data?.errors?.map((err) => err.msg) || [t('cis.unexpectedError')];
+    const { messagesToSafeHtml } = await import('../utils/safeHtml');
     Swal.fire({
       icon: 'error',
       title: t('cis.saveError'),
-      html: `<ul>${messages.map((msg) => `<li>${msg}</li>`).join('')}</ul>`,
+      html: messagesToSafeHtml(messages),
     });
   }
 };
@@ -362,7 +364,7 @@ const handleImportFile = async (event) => {
     Swal.fire({
       icon: data.errorCount ? 'warning' : 'success',
       title: t('cis.importDone'),
-      html: `${t('cis.createdCount')}: ${data.createdCount}<br>${t('cis.errorCount')}: ${data.errorCount}`,
+      text: `${t('cis.createdCount')}: ${data.createdCount} · ${t('cis.errorCount')}: ${data.errorCount}`,
     });
     await fetchItems();
   } catch (error) {
@@ -372,5 +374,15 @@ const handleImportFile = async (event) => {
       text: error.response?.data?.message || error.message || t('cis.importErrorGeneric'),
     });
   }
+};
+
+const exportCsv = async () => {
+  const { data } = await api.get('/export/cis', { responseType: 'blob' });
+  const url = window.URL.createObjectURL(new Blob([data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'configuration_items.csv';
+  link.click();
+  window.URL.revokeObjectURL(url);
 };
 </script>

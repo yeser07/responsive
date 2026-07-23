@@ -83,7 +83,16 @@
               role="menu"
               aria-labelledby="dropdownUser"
             >
-              <p class="cm-user-menu__meta">{{ t('shell.activeSession') }}</p>
+              <p class="cm-user-menu__meta">{{ t('shell.activeSession') }} · {{ role }}</p>
+              <router-link
+                class="cm-user-menu__item"
+                role="menuitem"
+                to="/change-password"
+                @click="userMenuOpen = false"
+              >
+                <i class="bi bi-key" aria-hidden="true"></i>
+                {{ t('password.menu') }}
+              </router-link>
               <button
                 class="cm-user-menu__item"
                 type="button"
@@ -121,7 +130,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { useAuthState } from './services/auth';
+import { useAuthState, hasMinRole } from './services/auth';
 import { logoutRequest } from './services/api';
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
 
@@ -135,20 +144,25 @@ const userMenuOpen = ref(false);
 const userMenuRef = ref(null);
 
 const isLoginRoute = computed(() => route.path === '/login');
-const { username, isAuthenticated } = useAuthState();
+const { username, isAuthenticated, role } = useAuthState();
 const usernameInitial = computed(() => (username.value || 'A').charAt(0).toUpperCase());
 
-const navItems = [
-  { to: '/', labelKey: 'nav.home', icon: 'bi-house-door', titleKey: 'nav.home' },
-  { to: '/user-owners', labelKey: 'nav.userOwners', icon: 'bi-people', titleKey: 'nav.userOwners' },
-  { to: '/configuration-item', labelKey: 'nav.configurationItems', icon: 'bi-laptop', titleKey: 'nav.configurationItems' },
-  { to: '/assignments', labelKey: 'nav.assignments', icon: 'bi-clipboard', titleKey: 'nav.assignments' },
-  { to: '/letters', labelKey: 'nav.letters', icon: 'bi-envelope', titleKey: 'nav.letters' },
-  { to: '/admins', labelKey: 'nav.admins', icon: 'bi-shield-lock', titleKey: 'nav.admins' },
-];
+const navItems = computed(() =>
+  [
+    { to: '/', labelKey: 'nav.home', icon: 'bi-house-door', titleKey: 'nav.home', minRole: 'viewer' },
+    { to: '/user-owners', labelKey: 'nav.userOwners', icon: 'bi-people', titleKey: 'nav.userOwners', minRole: 'viewer' },
+    { to: '/configuration-item', labelKey: 'nav.configurationItems', icon: 'bi-laptop', titleKey: 'nav.configurationItems', minRole: 'viewer' },
+    { to: '/assignments', labelKey: 'nav.assignments', icon: 'bi-clipboard', titleKey: 'nav.assignments', minRole: 'viewer' },
+    { to: '/reviewers', labelKey: 'nav.reviewers', icon: 'bi-pen', titleKey: 'nav.reviewers', minRole: 'operator' },
+    { to: '/letters', labelKey: 'nav.letters', icon: 'bi-envelope', titleKey: 'nav.letters', minRole: 'viewer' },
+    { to: '/audit', labelKey: 'nav.audit', icon: 'bi-journal-text', titleKey: 'nav.audit', minRole: 'operator' },
+    { to: '/settings', labelKey: 'nav.settings', icon: 'bi-sliders', titleKey: 'nav.settings', minRole: 'admin' },
+    { to: '/admins', labelKey: 'nav.admins', icon: 'bi-shield-lock', titleKey: 'nav.admins', minRole: 'admin' },
+  ].filter((item) => hasMinRole(item.minRole))
+);
 
 const pageTitle = computed(() => {
-  const match = navItems.find((item) => item.to === route.path);
+  const match = navItems.value.find((item) => item.to === route.path);
   return match ? t(match.titleKey) : t('common.appName');
 });
 

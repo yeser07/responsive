@@ -2,115 +2,184 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Carta Responsiva</title>
+  <title>{{title}}</title>
   <style>
-    body {
+    @page {
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #111111;
       font-family: Arial, Helvetica, sans-serif;
-      color: #222;
-      margin: 40px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.55;
     }
-    h1 {
+    .page {
+      min-height: 100vh;
+      padding: 48px 56px 56px;
+      background: #ffffff;
+      color: #111111;
+    }
+    .logo {
       text-align: center;
-      font-size: 22px;
-      margin-bottom: 8px;
+      margin: 0 0 20px;
     }
-    .subtitle {
+    .logo img {
+      display: inline-block;
+      max-height: 88px;
+      max-width: 280px;
+      object-fit: contain;
+    }
+    .title {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
       text-align: center;
-      margin-bottom: 32px;
-      color: #555;
     }
-    .section {
-      margin-bottom: 20px;
+    .date {
+      margin: 0 0 28px;
+      font-size: 14px;
+      text-align: center;
     }
-    table {
+    .person p {
+      margin: 0 0 4px;
+    }
+    .declaration {
+      margin: 28px 0;
+      max-width: 42rem;
+    }
+    .declaration p {
+      margin: 0 0 0.75em;
+    }
+    .declaration p:last-child {
+      margin-bottom: 0;
+    }
+    .declaration ul,
+    .declaration ol {
+      margin: 0 0 0.75em;
+      padding-left: 1.25rem;
+    }
+    .declaration strong {
+      font-weight: 700;
+    }
+    .declaration em {
+      font-style: italic;
+    }
+    .declaration u {
+      text-decoration: underline;
+    }
+    .equipment-title {
+      margin: 28px 0 10px;
+      font-weight: 700;
+    }
+    .equipment-list {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+    .equipment-list li {
+      margin-bottom: 4px;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      gap: 48px;
+      margin-top: 72px;
+    }
+    .sig-col {
+      width: 45%;
+    }
+    .sig-label {
+      margin: 0 0 16px;
+    }
+    .sig-line {
+      border-top: 1px solid #111111;
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #f3f3f3;
-    }
-    .signature {
+      max-width: 260px;
       margin-top: 48px;
     }
-    .signature img {
-      max-width: 240px;
-      max-height: 100px;
+    .sig-box {
+      display: inline-block;
+      min-width: 180px;
+      min-height: 64px;
+      padding: 8px 12px;
+      background: #f7f7f7;
+      border: 1px solid #cccccc;
+      text-align: center;
     }
-    .line {
-      margin-top: 60px;
-      border-top: 1px solid #333;
-      width: 260px;
-      padding-top: 6px;
+    .sig-box img {
+      max-width: 200px;
+      max-height: 72px;
+      display: block;
+      margin: 0 auto;
+    }
+    .sig-meta {
+      margin: 10px 0 0;
+      text-align: center;
+      max-width: 220px;
+    }
+    .sig-meta p {
+      margin: 0;
     }
   </style>
 </head>
 <body>
-  <h1>Carta Responsiva de Activo</h1>
-  <p class="subtitle">CI Manager</p>
-
-  <div class="section">
-    <p>Fecha: <strong>{{date}}</strong></p>
-    <p>
-      Yo, <strong>{{assigneeName}}</strong> ({{logonUser}}), con cargo
-      <strong>{{jobDescription}}</strong>, declaro haber recibido el siguiente activo
-      bajo mi responsabilidad:
-    </p>
-  </div>
-
-  <div class="section">
-    <table>
-      <thead>
-        <tr>
-          <th>Clase</th>
-          <th>Marca</th>
-          <th>Modelo</th>
-          <th>Serial</th>
-          <th>Ubicación</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{className}}</td>
-          <td>{{brandName}}</td>
-          <td>{{modelName}}</td>
-          <td>{{serialNumber}}</td>
-          <td>{{location}}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  {{#if accessories.length}}
-  <div class="section">
-    <p><strong>Accesorios:</strong></p>
-    <ul>
-      {{#each accessories}}
-      <li>{{this}}</li>
-      {{/each}}
-    </ul>
-  </div>
-  {{/if}}
-
-  <div class="section">
-    <p>
-      Me comprometo a cuidar el equipo, usarlo únicamente para fines laborales y
-      reportar cualquier daño, pérdida o mal funcionamiento de forma inmediata.
-    </p>
-  </div>
-
-  <div class="signature">
-    {{#if signature}}
-    <p>Firma:</p>
-    <img src="{{signature}}" alt="Firma" />
+  <div class="page">
+    {{#if logoDataUrl}}
+    <div class="logo">
+      <img src="{{logoDataUrl}}" alt="" />
+    </div>
     {{/if}}
-    <div class="line">{{assigneeName}}</div>
+
+    <h1 class="title">{{title}}</h1>
+    <p class="date">{{date}}</p>
+
+    <div class="person">
+      <p><strong>Nombre:</strong> {{assigneeName}}</p>
+      <p><strong>Puesto:</strong> {{jobDescription}}</p>
+      <p><strong>Compañía:</strong> {{companyName}}</p>
+    </div>
+
+    <div class="declaration">{{{legalText}}}</div>
+
+    <p class="equipment-title">Datos del equipo entregado</p>
+    <ul class="equipment-list">
+      <li><strong>Modelo:</strong> {{equipmentModel}}</li>
+      <li><strong>Serie:</strong> {{serialNumber}}</li>
+      <li><strong>Accesorios:</strong> {{accessoriesText}}</li>
+    </ul>
+
+    <div class="signatures">
+      <div class="sig-col">
+        <p class="sig-label"><strong>Nombre:</strong> {{assigneeName}}</p>
+        {{#if assigneeSignature}}
+        <div class="sig-box">
+          <img src="{{assigneeSignature}}" alt="Firma del asignatario" />
+        </div>
+        {{else}}
+        <div class="sig-line"></div>
+        {{/if}}
+      </div>
+      <div class="sig-col">
+        <p class="sig-label"><strong>Revisado por:</strong> {{reviewedByName}}</p>
+        {{#if reviewerSignature}}
+        <div class="sig-box">
+          <img src="{{reviewerSignature}}" alt="Firma del revisor" />
+        </div>
+        {{else}}
+        <div class="sig-line"></div>
+        {{/if}}
+        <div class="sig-meta">
+          <p>{{reviewedByTitle}}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>

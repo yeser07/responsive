@@ -1,6 +1,4 @@
-# Frontend CI Manager
-
-Vue 3 + Vite client for CI Manager.
+# Frontend — CI Manager
 
 ## Setup
 
@@ -10,5 +8,12 @@ npm install
 npm run dev
 ```
 
-`VITE_API_URL` should point to the backend API root including `/api`
-(e.g. `http://localhost:3000/api`).
+`VITE_API_URL` must point to the API (e.g. `http://localhost:3000/api`).
+
+## Scripts
+
+- `npm run dev` — Vite dev server
+- `npm run build` — production build
+- `npm run lint` — ESLint
+- `npm run test` — Vitest unit tests
+- `npm run preview` — preview production build
