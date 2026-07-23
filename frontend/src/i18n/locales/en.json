@@ -29,7 +29,19 @@
     "csvExample": "Sample CSV format:",
     "importHelp": "Upload a CSV or JSON file with the following fields.",
     "developedBy": "Developed by ",
-    "developerName": "Yeser Sabillon"
+    "developerName": "Yeser Sabillon",
+    "export": "Export"
+  },
+  "status": {
+    "active": "active",
+    "inactive": "inactive",
+    "stock": "stock",
+    "inUse": "in use",
+    "retired": "retired",
+    "missing": "missing",
+    "damaged": "damaged",
+    "assigned": "assigned",
+    "returned": "returned"
   },
   "nav": {
     "home": "Home",
@@ -38,11 +50,52 @@
     "assignments": "Assignments",
     "letters": "Letters",
     "admins": "Administrators",
+    "audit": "Audit",
+    "settings": "Letter template",
     "mainNav": "Main navigation",
     "expand": "Expand",
     "collapse": "Collapse",
     "openMenu": "Open menu",
     "skipToContent": "Skip to content"
+  },
+  "password": {
+    "title": "Change password",
+    "subtitle": "Update your password to continue.",
+    "current": "Current password",
+    "new": "New password",
+    "submit": "Update",
+    "success": "Password updated",
+    "error": "Could not update password",
+    "menu": "Change password"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "subtitle": "The requested route does not exist.",
+    "home": "Back to home"
+  },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "History of actions in the system.",
+    "when": "When",
+    "actor": "Actor",
+    "action": "Action",
+    "entity": "Entity",
+    "entityId": "ID",
+    "meta": "Details",
+    "filterEntity": "Filter by entity",
+    "loadError": "Could not load audit log"
+  },
+  "settings": {
+    "title": "Letter template",
+    "subtitle": "Texts and logo used when generating PDFs.",
+    "companyName": "Company",
+    "letterTitle": "Title",
+    "legalText": "Legal text",
+    "logo": "Logo (optional)",
+    "logoTooLarge": "Logo must be under 1.5 MB",
+    "saved": "Template saved",
+    "loadError": "Could not load template",
+    "saveError": "Could not save template"
   },
   "shell": {
     "activeSession": "Active session",
@@ -60,7 +113,8 @@
     "submit": "Sign in",
     "submitting": "Signing in...",
     "errorTitle": "Could not sign in",
-    "invalidCredentials": "Invalid credentials"
+    "invalidCredentials": "Invalid credentials",
+    "sso": "Continue with {provider}"
   },
   "home": {
     "welcome": "Welcome",
@@ -70,14 +124,28 @@
     "cisDesc": "Inventory, import, and statuses.",
     "assignmentsDesc": "Assign, return, and generate the PDF letter.",
     "lettersDesc": "Download accountability letters.",
-    "adminsDesc": "Accounts with application access."
+    "adminsDesc": "Accounts with application access.",
+    "auditDesc": "History of changes and operations.",
+    "settingsDesc": "PDF template, logo and legal texts.",
+    "dashboard": "Operations summary",
+    "statCis": "Assets",
+    "statStock": "In stock",
+    "statOpen": "Open assignments",
+    "statLetters": "Letters",
+    "alerts": "Alerts",
+    "alertsDetail": "{stale} open assignments >30 days · {problems} missing/damaged CIs",
+    "globalSearch": "Global search",
+    "searchPlaceholder": "Search users, serials, letters…",
+    "searchResults": "Results"
   },
   "admins": {
     "title": "Administrators",
-    "subtitle": "Users with full access to the application.",
+    "subtitle": "Users with access to the application.",
     "searchPlaceholder": "Search by username",
     "username": "Username",
     "password": "Password",
+    "role": "Role",
+    "roleError": "Could not update role",
     "noData": "No administrators found.",
     "newTitle": "New administrator",
     "requiredFields": "Username and password are required",
@@ -172,7 +240,14 @@
     "letterExistsInfo": "A letter already exists for this assignment. Check the Letters section.",
     "letterError": "Could not generate the letter",
     "statusAssigned": "assigned",
-    "statusReturned": "returned"
+    "statusReturned": "returned",
+    "signature": "Signature (optional)",
+    "clearSignature": "Clear signature",
+    "photo": "Asset photo (optional)",
+    "userSearchPlaceholder": "Search by name or logon...",
+    "ciSearchPlaceholder": "Search by serial, brand or model...",
+    "noSearchResults": "No results",
+    "clearSelection": "Clear selection"
   },
   "letters": {
     "title": "Letters",
@@ -188,6 +263,7 @@
     "previewLoading": "Loading preview...",
     "noData": "No letters found.",
     "loadError": "Could not load letters",
-    "downloadError": "Could not download the PDF"
+    "downloadError": "Could not download the PDF",
+    "searchPlaceholder": "Search by user, serial or file"
   }
 }

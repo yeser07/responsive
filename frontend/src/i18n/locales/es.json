@@ -29,7 +29,19 @@
     "csvExample": "Formato CSV de ejemplo:",
     "importHelp": "Sube un archivo CSV o JSON con los campos siguientes.",
     "developedBy": "Desarrollado por ",
-    "developerName": "Yeser Sabillon"
+    "developerName": "Yeser Sabillon",
+    "export": "Exportar"
+  },
+  "status": {
+    "active": "activo",
+    "inactive": "inactivo",
+    "stock": "en stock",
+    "inUse": "en uso",
+    "retired": "retirado",
+    "missing": "extraviado",
+    "damaged": "dañado",
+    "assigned": "asignado",
+    "returned": "devuelto"
   },
   "nav": {
     "home": "Inicio",
@@ -38,11 +50,52 @@
     "assignments": "Assignments",
     "letters": "Letters",
     "admins": "Administradores",
+    "audit": "Auditoría",
+    "settings": "Plantilla",
     "mainNav": "Navegación principal",
     "expand": "Expandir",
     "collapse": "Colapsar",
     "openMenu": "Abrir menú",
     "skipToContent": "Saltar al contenido"
+  },
+  "password": {
+    "title": "Cambiar contraseña",
+    "subtitle": "Actualiza tu contraseña para continuar.",
+    "current": "Contraseña actual",
+    "new": "Nueva contraseña",
+    "submit": "Actualizar",
+    "success": "Contraseña actualizada",
+    "error": "No se pudo actualizar la contraseña",
+    "menu": "Cambiar contraseña"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "subtitle": "La ruta solicitada no existe.",
+    "home": "Volver al inicio"
+  },
+  "audit": {
+    "title": "Auditoría",
+    "subtitle": "Historial de acciones en el sistema.",
+    "when": "Fecha",
+    "actor": "Usuario",
+    "action": "Acción",
+    "entity": "Entidad",
+    "entityId": "ID",
+    "meta": "Detalle",
+    "filterEntity": "Filtrar por entidad",
+    "loadError": "No se pudo cargar la auditoría"
+  },
+  "settings": {
+    "title": "Plantilla de carta",
+    "subtitle": "Textos y logo usados al generar PDFs.",
+    "companyName": "Empresa",
+    "letterTitle": "Título",
+    "legalText": "Texto legal",
+    "logo": "Logo (opcional)",
+    "logoTooLarge": "El logo debe ser menor a 1.5 MB",
+    "saved": "Plantilla guardada",
+    "loadError": "No se pudo cargar la plantilla",
+    "saveError": "No se pudo guardar la plantilla"
   },
   "shell": {
     "activeSession": "Sesión activa",
@@ -60,7 +113,8 @@
     "submit": "Entrar",
     "submitting": "Entrando...",
     "errorTitle": "No se pudo iniciar sesión",
-    "invalidCredentials": "Credenciales inválidas"
+    "invalidCredentials": "Credenciales inválidas",
+    "sso": "Continuar con {provider}"
   },
   "home": {
     "welcome": "Bienvenido",
@@ -70,14 +124,28 @@
     "cisDesc": "Inventario, importación y estados.",
     "assignmentsDesc": "Asigna, devuelve y genera la carta PDF.",
     "lettersDesc": "Descarga las cartas responsivas.",
-    "adminsDesc": "Cuentas de acceso a la aplicación."
+    "adminsDesc": "Cuentas de acceso a la aplicación.",
+    "auditDesc": "Historial de cambios y operaciones.",
+    "settingsDesc": "Plantilla PDF, logo y textos legales.",
+    "dashboard": "Resumen operativo",
+    "statCis": "Activos",
+    "statStock": "En stock",
+    "statOpen": "Asignaciones abiertas",
+    "statLetters": "Cartas",
+    "alerts": "Alertas",
+    "alertsDetail": "{stale} asignaciones abiertas >30 días · {problems} CIs missing/damaged",
+    "globalSearch": "Búsqueda global",
+    "searchPlaceholder": "Buscar usuarios, seriales, cartas…",
+    "searchResults": "Resultados"
   },
   "admins": {
     "title": "Administradores",
-    "subtitle": "Usuarios con acceso completo a la aplicación.",
+    "subtitle": "Usuarios con acceso a la aplicación.",
     "searchPlaceholder": "Buscar por usuario",
     "username": "Usuario",
     "password": "Contraseña",
+    "role": "Rol",
+    "roleError": "No se pudo actualizar el rol",
     "noData": "No hay administradores.",
     "newTitle": "Nuevo administrador",
     "requiredFields": "Usuario y contraseña son obligatorios",
@@ -172,7 +240,14 @@
     "letterExistsInfo": "Ya existe una carta para esta asignación. Revisa la sección Letters.",
     "letterError": "No se pudo generar la carta",
     "statusAssigned": "assigned",
-    "statusReturned": "returned"
+    "statusReturned": "returned",
+    "signature": "Firma (opcional)",
+    "clearSignature": "Limpiar firma",
+    "photo": "Foto del activo (opcional)",
+    "userSearchPlaceholder": "Buscar por nombre o logon...",
+    "ciSearchPlaceholder": "Buscar por serial, marca o modelo...",
+    "noSearchResults": "Sin resultados",
+    "clearSelection": "Limpiar selección"
   },
   "letters": {
     "title": "Letters",
@@ -188,6 +263,7 @@
     "previewLoading": "Cargando vista previa...",
     "noData": "No se encontraron cartas.",
     "loadError": "No se pudieron cargar las cartas",
-    "downloadError": "No se pudo descargar el PDF"
+    "downloadError": "No se pudo descargar el PDF",
+    "searchPlaceholder": "Buscar por usuario, serial o archivo"
   }
 }

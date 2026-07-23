@@ -2,6 +2,7 @@
   <div class="cm-page">
     <PageHeader :title="t('users.title')" :subtitle="t('users.subtitle')">
       <template #actions>
+        <button class="btn btn-outline-secondary" @click="exportCsv">{{ t('common.export') }}</button>
         <button class="btn btn-primary" @click="openCreateModal">{{ t('common.new') }} <i class="bi bi-plus"></i></button>
         <button class="btn btn-success" @click="openImportHelpModal">
           {{ t('common.import') }} <i class="bi bi-upload"></i>
@@ -13,15 +14,29 @@
     <div class="cm-panel">
       <div class="cm-toolbar">
         <div class="cm-toolbar__search">
-          <input v-model="search" type="text" class="form-control" :placeholder="t('users.searchPlaceholder')" />
+          <input
+            v-model="serverOptions.searchTerm"
+            type="text"
+            class="form-control"
+            :placeholder="t('users.searchPlaceholder')"
+          />
         </div>
       </div>
 
-      <EasyDataTable :headers="headers" :items="filteredItems" :loading="loading" buttons-pagination show-index
-        :no-data-text="t('users.noData')">
+      <EasyDataTable
+        v-model:server-options="serverOptions"
+        :server-items-length="serverItemsLength"
+        :headers="headers"
+        :items="items"
+        :loading="loading"
+        buttons-pagination
+        show-index
+        must-sort
+        :no-data-text="t('users.noData')"
+      >
         <template #item-status="item">
           <span :class="['cm-badge', item.status === 'active' ? 'cm-badge--active' : 'cm-badge--inactive']">
-            {{ item.status }}
+            {{ t(`status.${item.status}`, item.status) }}
           </span>
         </template>
         <template #item-actions="item">
@@ -96,12 +111,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Swal from 'sweetalert2';
 import api from '../services/api';
 import PageHeader from '../components/PageHeader.vue';
 import { hideModal, showModal } from '../utils/modal';
+import { normalizeSortParams } from '../utils/sortParams';
 import {
   USER_OWNER_IMPORT_TEMPLATE,
   downloadCsvTemplate,
@@ -112,41 +128,52 @@ const { t } = useI18n();
 const userTemplate = USER_OWNER_IMPORT_TEMPLATE;
 
 const headers = computed(() => [
-  { text: t('users.name'), value: 'name' },
-  { text: t('users.logon'), value: 'logonUser' },
-  { text: t('users.job'), value: 'jobDescription' },
-  { text: t('common.status'), value: 'status' },
-  { text: t('common.actions'), value: 'actions' },
+  { text: t('users.name'), value: 'name', sortable: true },
+  { text: t('users.logon'), value: 'logonUser', sortable: true },
+  { text: t('users.job'), value: 'jobDescription', sortable: true },
+  { text: t('common.status'), value: 'status', sortable: true },
+  { text: t('common.actions'), value: 'actions', sortable: false },
 ]);
 
 const items = ref([]);
 const loading = ref(false);
-const search = ref('');
+const serverItemsLength = ref(0);
+const serverOptions = ref({
+  page: 1,
+  rowsPerPage: 10,
+  sortBy: ['name'],
+  sortType: ['asc'],
+  searchTerm: '',
+});
 const isEditing = ref(false);
 const currentId = ref(null);
 const importFileInput = ref(null);
 const form = ref({ name: '', logonUser: '', jobDescription: '' });
 
-const filteredItems = computed(() => {
-  const term = search.value.trim().toLowerCase();
-  if (!term) return items.value;
-  return items.value.filter((u) =>
-    [u.name, u.logonUser, u.jobDescription, u.status].some((v) => String(v).toLowerCase().includes(term))
-  );
-});
-
 const fetchItems = async () => {
   loading.value = true;
   try {
-    const { data } = await api.get('/users');
-    items.value = data;
-  } catch (error) {
+    const { page, rowsPerPage, sortBy, sortType, searchTerm } = serverOptions.value;
+    const { data } = await api.get('/users', {
+      params: {
+        page,
+        rowsPerPage,
+        ...normalizeSortParams(sortBy, sortType),
+        search: searchTerm || '',
+      },
+    });
+    items.value = data.items || [];
+    serverItemsLength.value = data.total || 0;
+  } catch {
     items.value = [];
+    serverItemsLength.value = 0;
     Swal.fire(t('common.error'), t('users.loadError'), 'error');
   } finally {
     loading.value = false;
   }
 };
+
+watch(serverOptions, fetchItems, { deep: true, immediate: true });
 
 const openCreateModal = () => {
   isEditing.value = false;
@@ -179,7 +206,8 @@ const save = async () => {
     await fetchItems();
   } catch (error) {
     const messages = error.response?.data?.errors?.map((e) => e.msg) || [error.response?.data?.message || t('common.error')];
-    Swal.fire({ icon: 'error', title: t('common.error'), html: `<ul>${messages.map((m) => `<li>${m}</li>`).join('')}</ul>` });
+    const { messagesToSafeHtml } = await import('../utils/safeHtml');
+    Swal.fire({ icon: 'error', title: t('common.error'), html: messagesToSafeHtml(messages) });
   }
 };
 
@@ -216,7 +244,7 @@ const handleImportFile = async (event) => {
     Swal.fire({
       icon: data.errorCount ? 'warning' : 'success',
       title: t('users.importDone'),
-      html: `${t('users.createdCount')}: ${data.createdCount}<br>${t('users.errorCount')}: ${data.errorCount}`,
+      text: `${t('users.createdCount')}: ${data.createdCount} · ${t('users.errorCount')}: ${data.errorCount}`,
     });
     await fetchItems();
   } catch (error) {
@@ -228,5 +256,14 @@ const handleImportFile = async (event) => {
   }
 };
 
-onMounted(fetchItems);
+const exportCsv = async () => {
+  const { data } = await api.get('/export/users', { responseType: 'blob' });
+  const url = window.URL.createObjectURL(new Blob([data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'user_owners.csv';
+  link.click();
+  window.URL.revokeObjectURL(url);
+};
 </script>
+

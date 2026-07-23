@@ -3,13 +3,27 @@
     <PageHeader :title="t('letters.title')" :subtitle="t('letters.subtitle')" />
 
     <div class="cm-panel">
+      <div class="cm-toolbar">
+        <div class="cm-toolbar__search">
+          <input
+            v-model="search"
+            type="text"
+            class="form-control"
+            :placeholder="t('letters.searchPlaceholder')"
+            @keyup.enter="fetchItems"
+          />
+        </div>
+        <button class="btn btn-outline-primary" @click="fetchItems">{{ t('common.search') }}</button>
+      </div>
       <EasyDataTable
+        v-model:server-options="serverOptions"
+        :server-items-length="serverItemsLength"
         :headers="headers"
         :items="items"
         :loading="loading"
         buttons-pagination
-        show-index
         :no-data-text="t('letters.noData')"
+        @update:server-options="fetchItems"
       >
         <template #item-user="item">
           {{ item.assignmentId?.userOwnerId?.name || '—' }}
@@ -111,6 +125,9 @@ const headers = computed(() => [
 
 const items = ref([]);
 const loading = ref(false);
+const search = ref('');
+const serverItemsLength = ref(0);
+const serverOptions = ref({ page: 1, rowsPerPage: 10, sortBy: [], sortType: [] });
 
 const previewUrl = ref('');
 const previewLoading = ref(false);
@@ -139,9 +156,16 @@ const clearPreview = () => {
 const fetchItems = async () => {
   loading.value = true;
   try {
-    const { data } = await api.get('/letters');
-    items.value = data;
-  } catch (error) {
+    const { data } = await api.get('/letters', {
+      params: {
+        page: serverOptions.value.page,
+        rowsPerPage: serverOptions.value.rowsPerPage,
+        search: search.value,
+      },
+    });
+    items.value = data.items || [];
+    serverItemsLength.value = data.total || 0;
+  } catch {
     items.value = [];
     Swal.fire(t('common.error'), t('letters.loadError'), 'error');
   } finally {
@@ -153,7 +177,7 @@ const download = async (item) => {
   if (!item?._id) return;
   try {
     await downloadLetterFile(item._id, item.fileName || `letter_${item._id}.pdf`);
-  } catch (error) {
+  } catch {
     Swal.fire(t('common.error'), t('letters.downloadError'), 'error');
   }
 };
@@ -168,7 +192,7 @@ const openPreview = async (item) => {
 
   try {
     previewUrl.value = await createLetterObjectUrl(item._id);
-  } catch (error) {
+  } catch {
     hideModal('letterPreviewModal');
     clearPreview();
     Swal.fire(t('common.error'), t('letters.previewError'), 'error');

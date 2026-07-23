@@ -41,19 +41,25 @@
         <button class="btn btn-primary w-100" type="submit" :disabled="loading">
           {{ loading ? t('login.submitting') : t('login.submit') }}
         </button>
+        <a
+          v-if="ssoEnabled"
+          class="btn btn-outline-secondary w-100 mt-2"
+          :href="`${apiUrl}/auth/sso/login`"
+        >
+          {{ t('login.sso', { provider }) }}
+        </a>
       </form>
     </section>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import apiUrl from '../config';
-import { setAuth } from '../services/auth';
+import { loginRequest, fetchSsoStatus } from '../services/api';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
 const { t } = useI18n();
@@ -61,20 +67,24 @@ const router = useRouter();
 const username = ref('');
 const password = ref('');
 const loading = ref(false);
+const ssoEnabled = ref(false);
+const provider = ref('OIDC');
+
+onMounted(async () => {
+  try {
+    const status = await fetchSsoStatus();
+    ssoEnabled.value = Boolean(status.enabled);
+    provider.value = status.provider || 'OIDC';
+  } catch {
+    ssoEnabled.value = false;
+  }
+});
 
 const handleLogin = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.post(
-      `${apiUrl}/auth/login`,
-      {
-        username: username.value,
-        password: password.value,
-      },
-      { withCredentials: true }
-    );
-    setAuth(data.user.username);
-    router.push('/');
+    const user = await loginRequest(username.value, password.value);
+    router.push(user.mustChangePassword ? '/change-password' : '/');
   } catch (error) {
     Swal.fire({
       icon: 'error',

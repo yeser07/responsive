@@ -95,13 +95,14 @@ async function run() {
   const unauthorized = await request('/api/users');
   assert(unauthorized.status === 401, `Expected 401 without token, got ${unauthorized.status}`);
 
-  const users = await request('/api/users', { cookie });
+  const users = await request('/api/users?page=1&rowsPerPage=10', { cookie });
   assert(users.status === 200, `Expected /api/users 200, got ${users.status}`);
-  assert(Array.isArray(users.data), 'Users response is not an array');
+  assert(Array.isArray(users.data?.items), 'Users items missing');
 
   const me = await request('/api/auth/me', { cookie });
   assert(me.status === 200, `Expected /api/auth/me 200, got ${me.status}`);
   assert(me.data?.user?.username, 'me did not return username');
+  assert(me.data?.user?.role, 'me did not return role');
 
   const refresh = await request('/api/auth/refresh', {
     method: 'POST',
@@ -119,11 +120,23 @@ async function run() {
   assert(cis.status === 200, `Expected /api/cis 200, got ${cis.status}`);
   assert(Array.isArray(cis.data?.items), 'CIs items missing');
 
-  const assignments = await request('/api/assignments', { cookie: cookieHeader(cookies) });
+  const assignments = await request('/api/assignments?page=1&rowsPerPage=10', {
+    cookie: cookieHeader(cookies),
+  });
   assert(assignments.status === 200, `Expected /api/assignments 200, got ${assignments.status}`);
+  assert(Array.isArray(assignments.data?.items), 'Assignments items missing');
 
-  const letters = await request('/api/letters', { cookie: cookieHeader(cookies) });
+  const letters = await request('/api/letters?page=1&rowsPerPage=10', {
+    cookie: cookieHeader(cookies),
+  });
   assert(letters.status === 200, `Expected /api/letters 200, got ${letters.status}`);
+  assert(Array.isArray(letters.data?.items), 'Letters items missing');
+
+  const dashboard = await request('/api/reports/dashboard', { cookie: cookieHeader(cookies) });
+  assert(dashboard.status === 200, `Expected dashboard 200, got ${dashboard.status}`);
+
+  const search = await request('/api/search?q=admin', { cookie: cookieHeader(cookies) });
+  assert(search.status === 200, `Expected search 200, got ${search.status}`);
 
   const uniqueUser = `smoke_${Date.now()}`;
   const created = await request('/api/admins', {

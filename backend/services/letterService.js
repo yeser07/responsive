@@ -5,6 +5,15 @@ const puppeteer = require('puppeteer');
 const fse = require('fs-extra');
 const Assignment = require('../models/assignment');
 const Letter = require('../models/letter');
+const LetterTemplate = require('../models/letterTemplate');
+
+async function getTemplateSettings() {
+  let template = await LetterTemplate.findOne({ key: 'default' });
+  if (!template) {
+    template = await LetterTemplate.create({ key: 'default' });
+  }
+  return template;
+}
 
 async function compileTemplate(data) {
   const templatePath = path.join(__dirname, '..', 'templates', 'assignmentLetter.hbs');
@@ -31,8 +40,13 @@ async function createAssignmentLetter(assignmentId, signatureDataUrl) {
 
   const user = assignment.userOwnerId;
   const ci = assignment.configurationItemId;
+  const settings = await getTemplateSettings();
 
   const html = await compileTemplate({
+    companyName: settings.companyName,
+    title: settings.title,
+    legalText: settings.legalText,
+    logoDataUrl: settings.logoDataUrl,
     assigneeName: user?.name || 'N/A',
     logonUser: user?.logonUser || '',
     jobDescription: user?.jobDescription || '',
@@ -74,4 +88,4 @@ async function createAssignmentLetter(assignmentId, signatureDataUrl) {
   return letter;
 }
 
-module.exports = { createAssignmentLetter, compileTemplate };
+module.exports = { createAssignmentLetter, compileTemplate, getTemplateSettings };

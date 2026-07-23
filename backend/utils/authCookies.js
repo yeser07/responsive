@@ -4,7 +4,36 @@ const jwt = require('jsonwebtoken');
 const ACCESS_COOKIE = 'accessToken';
 const REFRESH_COOKIE = 'refreshToken';
 
+function isProduction() {
+  return process.env.NODE_ENV === 'production';
+}
+
+function assertSecretsConfigured() {
+  const missing = [];
+  if (!process.env.JWT_SECRET) missing.push('JWT_SECRET');
+  if (!process.env.JWT_REFRESH_SECRET && !process.env.JWT_SECRET) {
+    missing.push('JWT_REFRESH_SECRET');
+  }
+  if (missing.length && (isProduction() || process.env.REQUIRE_SECRETS === 'true')) {
+    throw new Error(`Missing required auth secrets: ${missing.join(', ')}`);
+  }
+  if (missing.length) {
+    console.warn(
+      `[auth] Using insecure development secrets. Set ${missing.join(', ')} before production.`
+    );
+  }
+}
+
 function getSecrets() {
+  assertSecretsConfigured();
+  if (isProduction() || process.env.REQUIRE_SECRETS === 'true') {
+    return {
+      accessSecret: process.env.JWT_SECRET,
+      refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+      accessExpires: process.env.JWT_EXPIRES_IN || '15m',
+      refreshExpires: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    };
+  }
   return {
     accessSecret: process.env.JWT_SECRET || 'dev-secret',
     refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'dev-refresh-secret',
@@ -45,7 +74,12 @@ function hashToken(token) {
 function signAccessToken(admin) {
   const { accessSecret, accessExpires } = getSecrets();
   return jwt.sign(
-    { id: admin._id.toString(), username: admin.username },
+    {
+      id: admin._id.toString(),
+      username: admin.username,
+      role: admin.role || 'admin',
+      mustChangePassword: Boolean(admin.mustChangePassword),
+    },
     accessSecret,
     { expiresIn: accessExpires }
   );
@@ -95,6 +129,7 @@ module.exports = {
   ACCESS_COOKIE,
   REFRESH_COOKIE,
   getSecrets,
+  assertSecretsConfigured,
   parseDurationToMs,
   hashToken,
   signAccessToken,

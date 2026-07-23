@@ -1,19 +1,79 @@
+/**
+ * RFC 4180-ish CSV parser with quoted fields and escaped quotes.
+ */
 export function parseCsv(text) {
-  const lines = text.trim().split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map((h) => h.trim());
-  return lines.slice(1).map((line) => {
-    const cols = line.split(',').map((c) => c.trim());
-    const row = {};
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  const pushField = () => {
+    row.push(field);
+    field = '';
+  };
+  const pushRow = () => {
+    if (row.length === 1 && row[0] === '' && rows.length === 0) {
+      row = [];
+      return;
+    }
+    rows.push(row);
+    row = [];
+  };
+
+  const input = String(text || '').replace(/^\uFEFF/, '');
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+    const next = input[i + 1];
+
+    if (inQuotes) {
+      if (char === '"' && next === '"') {
+        field += '"';
+        i += 1;
+      } else if (char === '"') {
+        inQuotes = false;
+      } else {
+        field += char;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = true;
+    } else if (char === ',') {
+      pushField();
+    } else if (char === '\n') {
+      pushField();
+      pushRow();
+    } else if (char === '\r') {
+      // ignore; handle \r\n via \n
+    } else {
+      field += char;
+    }
+  }
+
+  if (field.length || row.length) {
+    pushField();
+    pushRow();
+  }
+
+  if (rows.length < 2) return [];
+  const headers = rows[0].map((h) => h.trim());
+  return rows.slice(1).filter((cols) => cols.some((c) => String(c).trim() !== '')).map((cols) => {
+    const item = {};
     headers.forEach((header, index) => {
-      row[header] = cols[index] || '';
+      item[header] = (cols[index] || '').trim();
     });
-    return row;
+    return item;
   });
 }
 
 export function downloadCsvTemplate(filename, headers, sampleRow) {
-  const csv = `${headers.join(',')}\n${sampleRow.join(',')}\n`;
+  const escape = (value) => {
+    const text = String(value ?? '');
+    if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+    return text;
+  };
+  const csv = `${headers.map(escape).join(',')}\n${sampleRow.map(escape).join(',')}\n`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');

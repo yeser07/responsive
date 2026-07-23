@@ -28,6 +28,17 @@
         show-index
         :no-data-text="t('admins.noData')"
       >
+        <template #item-role="item">
+          <select
+            class="form-select form-select-sm"
+            :value="item.role"
+            @change="updateRole(item, $event.target.value)"
+          >
+            <option value="viewer">viewer</option>
+            <option value="operator">operator</option>
+            <option value="admin">admin</option>
+          </select>
+        </template>
         <template #item-actions="item">
           <button
             class="btn btn-outline-danger btn-sm"
@@ -70,6 +81,14 @@
                   autocomplete="new-password"
                 />
               </div>
+              <div class="mb-3">
+                <label class="form-label" for="admin-role">{{ t('admins.role') }}</label>
+                <select id="admin-role" v-model="form.role" class="form-select">
+                  <option value="viewer">viewer</option>
+                  <option value="operator">operator</option>
+                  <option value="admin">admin</option>
+                </select>
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -98,6 +117,7 @@ const { t } = useI18n();
 
 const headers = computed(() => [
   { text: t('admins.username'), value: 'username' },
+  { text: t('admins.role'), value: 'role' },
   { text: t('common.actions'), value: 'actions' },
 ]);
 
@@ -105,7 +125,7 @@ const items = ref([]);
 const loading = ref(false);
 const saving = ref(false);
 const search = ref('');
-const form = ref({ username: '', password: '' });
+const form = ref({ username: '', password: '', role: 'operator' });
 
 const filteredItems = computed(() => {
   const term = search.value.trim().toLowerCase();
@@ -127,7 +147,7 @@ const fetchItems = async () => {
 };
 
 const openCreateModal = () => {
-  form.value = { username: '', password: '' };
+  form.value = { username: '', password: '', role: 'operator' };
   showModal('adminModal');
 };
 
@@ -141,6 +161,7 @@ const save = async () => {
     await api.post('/admins', {
       username: form.value.username.trim(),
       password: form.value.password,
+      role: form.value.role,
     });
     hideModal('adminModal');
     Swal.fire(t('common.success'), t('admins.createdMsg'), 'success');
@@ -153,6 +174,15 @@ const save = async () => {
     );
   } finally {
     saving.value = false;
+  }
+};
+
+const updateRole = async (item, role) => {
+  try {
+    await api.put(`/admins/${item._id}/role`, { role });
+    await fetchItems();
+  } catch (error) {
+    Swal.fire(t('common.error'), error.response?.data?.message || t('admins.roleError'), 'error');
   }
 };
 
