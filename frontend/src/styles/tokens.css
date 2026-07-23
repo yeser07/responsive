@@ -1,0 +1,91 @@
+:root {
+  /* Brand / accent — Ops Studio teal */
+  --cm-teal-900: #134e4a;
+  --cm-teal-700: #0f766e;
+  --cm-teal-600: #0d9488;
+  --cm-teal-100: #ccfbf1;
+  --cm-teal-50: #f0fdfa;
+
+  /* Neutrals — cool slate */
+  --cm-slate-950: #0f172a;
+  --cm-slate-900: #1e293b;
+  --cm-slate-800: #334155;
+  --cm-slate-700: #475569;
+  --cm-slate-600: #64748b;
+  --cm-slate-500: #94a3b8;
+  --cm-slate-300: #cbd5e1;
+  --cm-slate-200: #e2e8f0;
+  --cm-slate-100: #f1f5f9;
+  --cm-slate-50: #f8fafc;
+  --cm-white: #ffffff;
+
+  /* Semantic */
+  --cm-success: #047857;
+  --cm-success-bg: #ecfdf5;
+  --cm-warning: #b45309;
+  --cm-warning-bg: #fffbeb;
+  --cm-danger: #b91c1c;
+  --cm-danger-bg: #fef2f2;
+  --cm-info: #0369a1;
+  --cm-info-bg: #e0f2fe;
+
+  /* Surfaces */
+  --cm-bg: var(--cm-slate-100);
+  --cm-surface: var(--cm-white);
+  --cm-surface-muted: var(--cm-slate-50);
+  --cm-border: var(--cm-slate-200);
+  --cm-border-strong: var(--cm-slate-300);
+  --cm-text: var(--cm-slate-900);
+  --cm-text-muted: var(--cm-slate-600);
+  --cm-text-inverse: var(--cm-slate-50);
+
+  /* Sidebar */
+  --cm-sidebar-bg: #0c1a24;
+  --cm-sidebar-text: #94a3b8;
+  --cm-sidebar-text-active: #f8fafc;
+  --cm-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --cm-sidebar-active: rgba(15, 118, 110, 0.28);
+  --cm-sidebar-width: 15rem;
+  --cm-sidebar-collapsed: 4.5rem;
+  --cm-topbar-height: 3.75rem;
+
+  /* Typography */
+  --cm-font-display: "Sora", sans-serif;
+  --cm-font-body: "Source Sans 3", sans-serif;
+  --cm-fs-xs: 0.8125rem;
+  --cm-fs-sm: 0.875rem;
+  --cm-fs-md: 1rem;
+  --cm-fs-lg: 1.125rem;
+  --cm-fs-xl: 1.375rem;
+  --cm-fs-2xl: 1.75rem;
+  --cm-fs-3xl: 2.25rem;
+  --cm-lh-tight: 1.2;
+  --cm-lh-normal: 1.5;
+
+  /* Spacing / radius / elevation */
+  --cm-radius-sm: 6px;
+  --cm-radius: 10px;
+  --cm-radius-lg: 14px;
+  --cm-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --cm-space-1: 0.25rem;
+  --cm-space-2: 0.5rem;
+  --cm-space-3: 0.75rem;
+  --cm-space-4: 1rem;
+  --cm-space-5: 1.25rem;
+  --cm-space-6: 1.5rem;
+  --cm-space-8: 2rem;
+
+  /* Motion */
+  --cm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --cm-duration: 180ms;
+  --cm-duration-slow: 280ms;
+
+  /* Bootstrap bridge */
+  --bs-primary: var(--cm-teal-700);
+  --bs-primary-rgb: 15, 118, 110;
+  --bs-body-font-family: var(--cm-font-body);
+  --bs-body-color: var(--cm-text);
+  --bs-border-radius: var(--cm-radius);
+  --bs-link-color: var(--cm-teal-700);
+  --bs-link-hover-color: var(--cm-teal-900);
+}

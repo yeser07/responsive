@@ -134,9 +134,8 @@ exports.getAllConfigurationItems = async (req, res) => {
 
 
 exports.toggleConfigurationItemStatus = async (req, res) => {
-    
     const itemId = req.params.id;
-    const status = req.params.status;
+    const status = req.body.status || decodeURIComponent(req.params.status || '');
     try {
         const item = await ConfigurationItem.findById(itemId);
         if (!item) {
@@ -148,17 +147,65 @@ exports.toggleConfigurationItemStatus = async (req, res) => {
         }
 
         item.status = status;
-        
+
         const updatedItem = await item.save();
-        res.status(200).json(
-            {
-                message: `Configuration item status updated to ${status}`,
-                item: updatedItem
-            });
+        res.status(200).json({
+            message: `Configuration item status updated to ${status}`,
+            item: updatedItem
+        });
     } catch (error) {
-        res.status(500).json({ 
+        res.status(500).json({
             message: 'Internal server error',
             error: error.message
          });
     }
-}
+};
+
+exports.importConfigurationItems = async (req, res) => {
+    const items = req.body.items;
+    if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: 'items must be a non-empty array' });
+    }
+
+    const required = ['className', 'serialNumber', 'brandName', 'modelName', 'location'];
+    const created = [];
+    const errors = [];
+
+    for (let i = 0; i < items.length; i++) {
+        const row = items[i] || {};
+        const missing = required.filter((field) => !row[field]);
+        if (missing.length) {
+            errors.push({ index: i, serialNumber: row.serialNumber, message: `Missing fields: ${missing.join(', ')}` });
+            continue;
+        }
+
+        try {
+            const payload = {
+                className: String(row.className).trim(),
+                serialNumber: String(row.serialNumber).trim(),
+                brandName: String(row.brandName).trim(),
+                modelName: String(row.modelName).trim(),
+                location: String(row.location).trim(),
+                status: row.status && ['In use', 'stock', 'retired', 'missing', 'damaged'].includes(row.status)
+                    ? row.status
+                    : 'stock',
+            };
+            const item = await ConfigurationItem.create(payload);
+            created.push(item);
+        } catch (error) {
+            errors.push({
+                index: i,
+                serialNumber: row.serialNumber,
+                message: error.code === 11000 ? 'Duplicate serialNumber' : error.message,
+            });
+        }
+    }
+
+    res.status(created.length ? 201 : 400).json({
+        message: `Imported ${created.length} of ${items.length} items`,
+        createdCount: created.length,
+        errorCount: errors.length,
+        created,
+        errors,
+    });
+};

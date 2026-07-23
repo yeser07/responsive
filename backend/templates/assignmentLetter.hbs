@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Carta Responsiva</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #222;
+      margin: 40px;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      margin-bottom: 32px;
+      color: #555;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #f3f3f3;
+    }
+    .signature {
+      margin-top: 48px;
+    }
+    .signature img {
+      max-width: 240px;
+      max-height: 100px;
+    }
+    .line {
+      margin-top: 60px;
+      border-top: 1px solid #333;
+      width: 260px;
+      padding-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Carta Responsiva de Activo</h1>
+  <p class="subtitle">CI Manager</p>
+
+  <div class="section">
+    <p>Fecha: <strong>{{date}}</strong></p>
+    <p>
+      Yo, <strong>{{assigneeName}}</strong> ({{logonUser}}), con cargo
+      <strong>{{jobDescription}}</strong>, declaro haber recibido el siguiente activo
+      bajo mi responsabilidad:
+    </p>
+  </div>
+
+  <div class="section">
+    <table>
+      <thead>
+        <tr>
+          <th>Clase</th>
+          <th>Marca</th>
+          <th>Modelo</th>
+          <th>Serial</th>
+          <th>Ubicación</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{className}}</td>
+          <td>{{brandName}}</td>
+          <td>{{modelName}}</td>
+          <td>{{serialNumber}}</td>
+          <td>{{location}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {{#if accessories.length}}
+  <div class="section">
+    <p><strong>Accesorios:</strong></p>
+    <ul>
+      {{#each accessories}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  <div class="section">
+    <p>
+      Me comprometo a cuidar el equipo, usarlo únicamente para fines laborales y
+      reportar cualquier daño, pérdida o mal funcionamiento de forma inmediata.
+    </p>
+  </div>
+
+  <div class="signature">
+    {{#if signature}}
+    <p>Firma:</p>
+    <img src="{{signature}}" alt="Firma" />
+    {{/if}}
+    <div class="line">{{assigneeName}}</div>
+  </div>
+</body>
+</html>

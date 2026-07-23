@@ -4,8 +4,9 @@ const configurationItemController = require('../controllers/configurationItemCon
 const validateConfigurationItemFields = require('../middlewares/validateConfigurationItemFields');
 
 router.get('/', configurationItemController.getAllConfigurationItems);
+router.post('/import', configurationItemController.importConfigurationItems);
 router.get('/:id', configurationItemController.getConfigurationItemById);
-
+router.put('/:id/status', configurationItemController.toggleConfigurationItemStatus);
 router.put('/:id/:status', configurationItemController.toggleConfigurationItemStatus);
 router.post('/', validateConfigurationItemFields, configurationItemController.createConfigurationItem);
 router.post('/:id', validateConfigurationItemFields, configurationItemController.updateConfigurationItem);

@@ -5,6 +5,7 @@ const UserOwnerController = require('../controllers/UserOwnerController');
 const validateUserOwnerFields = require('../middlewares/validateUserOwnerFields');
 
 router.get('/', UserOwnerController.getAllUsers);
+router.post('/import', UserOwnerController.importUserOwners);
 router.get('/:id', UserOwnerController.getUserById);
 
 router.put('/:id', UserOwnerController.updateUser);
