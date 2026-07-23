@@ -87,4 +87,55 @@ exports.toggleUserStatus = async (req, res) => {
         console.error('Error toggling user status:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-}
+};
+
+exports.importUserOwners = async (req, res) => {
+    const items = req.body.items;
+    if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: 'items must be a non-empty array' });
+    }
+
+    const required = ['name', 'logonUser', 'jobDescription'];
+    const created = [];
+    const errors = [];
+
+    for (let i = 0; i < items.length; i++) {
+        const row = items[i] || {};
+        const missing = required.filter((field) => !row[field]);
+        if (missing.length) {
+            errors.push({
+                index: i,
+                logonUser: row.logonUser,
+                message: `Missing fields: ${missing.join(', ')}`,
+            });
+            continue;
+        }
+
+        try {
+            const payload = {
+                name: String(row.name).trim(),
+                logonUser: String(row.logonUser).trim(),
+                jobDescription: String(row.jobDescription).trim(),
+                status: row.status && ['active', 'inactive'].includes(row.status)
+                    ? row.status
+                    : 'active',
+            };
+            const user = await UserOwner.create(payload);
+            created.push(user);
+        } catch (error) {
+            errors.push({
+                index: i,
+                logonUser: row.logonUser,
+                message: error.code === 11000 ? 'Duplicate logonUser' : error.message,
+            });
+        }
+    }
+
+    res.status(created.length ? 201 : 400).json({
+        message: `Imported ${created.length} of ${items.length} users`,
+        createdCount: created.length,
+        errorCount: errors.length,
+        created,
+        errors,
+    });
+};

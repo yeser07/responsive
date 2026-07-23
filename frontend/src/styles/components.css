@@ -1,0 +1,276 @@
+/* Buttons */
+.btn {
+  font-family: var(--cm-font-display);
+  font-weight: 600;
+  font-size: var(--cm-fs-sm);
+  border-radius: var(--cm-radius-sm);
+  padding: 0.55rem 1rem;
+  transition:
+    background-color var(--cm-duration) var(--cm-ease),
+    border-color var(--cm-duration) var(--cm-ease),
+    color var(--cm-duration) var(--cm-ease),
+    transform var(--cm-duration) var(--cm-ease),
+    box-shadow var(--cm-duration) var(--cm-ease);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background-color: var(--cm-teal-700);
+  border-color: var(--cm-teal-700);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--cm-teal-900);
+  border-color: var(--cm-teal-900);
+}
+
+.btn-success {
+  background-color: var(--cm-success);
+  border-color: var(--cm-success);
+}
+
+.btn-success:hover {
+  background-color: #065f46;
+  border-color: #065f46;
+}
+
+.btn-outline-primary {
+  color: var(--cm-teal-700);
+  border-color: var(--cm-teal-700);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--cm-teal-700);
+  border-color: var(--cm-teal-700);
+  color: var(--cm-white);
+}
+
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: var(--cm-fs-xs);
+}
+
+/* Forms */
+.form-control,
+.form-select {
+  border-radius: var(--cm-radius-sm);
+  border-color: var(--cm-border-strong);
+  font-family: var(--cm-font-body);
+  padding: 0.55rem 0.75rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--cm-teal-600);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+.form-label {
+  font-family: var(--cm-font-display);
+  font-size: var(--cm-fs-sm);
+  font-weight: 600;
+  color: var(--cm-slate-800);
+  margin-bottom: 0.35rem;
+}
+
+/* Status badges */
+.cm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--cm-font-display);
+  font-size: var(--cm-fs-xs);
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--cm-radius-sm);
+  letter-spacing: 0.01em;
+}
+
+.cm-badge--stock,
+.cm-badge--active,
+.cm-badge--returned {
+  background: var(--cm-success-bg);
+  color: var(--cm-success);
+}
+
+.cm-badge--in-use,
+.cm-badge--assigned {
+  background: var(--cm-info-bg);
+  color: var(--cm-info);
+}
+
+.cm-badge--inactive,
+.cm-badge--retired {
+  background: var(--cm-slate-100);
+  color: var(--cm-slate-700);
+}
+
+.cm-badge--missing,
+.cm-badge--damaged {
+  background: var(--cm-danger-bg);
+  color: var(--cm-danger);
+}
+
+.cm-badge--muted {
+  background: var(--cm-slate-100);
+  color: var(--cm-slate-600);
+}
+
+/* Page layout pieces */
+.cm-page {
+  animation: cm-fade-in var(--cm-duration-slow) var(--cm-ease) both;
+}
+
+.cm-panel {
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius-lg);
+  box-shadow: var(--cm-shadow);
+  padding: var(--cm-space-5);
+}
+
+.cm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cm-space-3);
+  align-items: center;
+  margin-bottom: var(--cm-space-5);
+}
+
+.cm-toolbar__search {
+  flex: 1 1 220px;
+  max-width: 420px;
+}
+
+.cm-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cm-space-2);
+  margin-left: auto;
+}
+
+/* EasyDataTable theme */
+.vue3-easy-data-table {
+  border-radius: var(--cm-radius) !important;
+  border: 1px solid var(--cm-border) !important;
+  overflow: hidden;
+  font-family: var(--cm-font-body) !important;
+  --easy-table-border: var(--cm-border) !important;
+  --easy-table-row-border: var(--cm-border) !important;
+  --easy-table-header-font-size: var(--cm-fs-sm) !important;
+  --easy-table-header-height: 48px !important;
+  --easy-table-header-font-color: var(--cm-slate-700) !important;
+  --easy-table-header-background-color: var(--cm-slate-50) !important;
+  --easy-table-body-row-font-color: var(--cm-slate-800) !important;
+  --easy-table-body-row-background-color: var(--cm-white) !important;
+  --easy-table-body-row-font-size: var(--cm-fs-sm) !important;
+  --easy-table-body-row-height: 52px !important;
+  --easy-table-body-row-hover-font-color: var(--cm-slate-900) !important;
+  --easy-table-body-row-hover-background-color: var(--cm-teal-50) !important;
+  --easy-table-footer-background-color: var(--cm-slate-50) !important;
+  --easy-table-footer-font-color: var(--cm-slate-600) !important;
+  --easy-table-footer-height: 48px !important;
+}
+
+.vue3-easy-data-table__header th {
+  font-family: var(--cm-font-display) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem !important;
+}
+
+/* Modals — always above shell; Teleport puts them on body */
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+
+.modal {
+  z-index: 1055 !important;
+}
+
+.modal-content {
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius-lg);
+  box-shadow: var(--cm-shadow);
+  overflow: hidden;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--cm-border);
+  background: var(--cm-surface-muted);
+  padding: 1rem 1.25rem;
+}
+
+.modal-title {
+  font-family: var(--cm-font-display);
+  font-weight: 600;
+  color: var(--cm-slate-900);
+}
+
+.modal-body {
+  color: var(--cm-text);
+  padding: 1.25rem;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--cm-border);
+  background: var(--cm-surface-muted);
+  padding: 0.85rem 1.25rem;
+}
+
+.modal-content .form-label,
+.modal-content .form-control,
+.modal-content .form-select,
+.modal-content p,
+.modal-content pre {
+  color: var(--cm-text);
+}
+
+.modal-content pre {
+  background: var(--cm-slate-50) !important;
+  border-color: var(--cm-border) !important;
+  font-size: var(--cm-fs-xs);
+}
+
+.btn-outline-secondary {
+  color: var(--cm-slate-700);
+  border-color: var(--cm-border-strong);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--cm-slate-100);
+  border-color: var(--cm-slate-500);
+  color: var(--cm-slate-900);
+}
+
+/* Skip link / a11y helpers */
+.cm-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: var(--cm-teal-700);
+  color: #fff;
+}
+
+.cm-skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* SweetAlert alignment */
+.swal2-popup {
+  font-family: var(--cm-font-body);
+  border-radius: var(--cm-radius-lg) !important;
+}
+
+.swal2-title {
+  font-family: var(--cm-font-display) !important;
+}
+
